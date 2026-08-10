@@ -76,6 +76,7 @@
     transition:color .2s ease, border-color .2s ease, background .2s ease;
   }
   .ghostBtn:hover, .ghostBtn.on{ color:var(--acc); border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
+  .ghostBtn svg{ width:17px; height:17px; }
   .ghostBtn.spinning{ animation:spin .8s linear infinite; }
   @keyframes spin{ to{ transform:rotate(360deg); } }
 
@@ -91,21 +92,31 @@
     border-color:var(--acc); background:rgba(255,255,255,.055);
     box-shadow:0 0 0 1px var(--acc) inset, 0 8px 22px -10px var(--glow-hard);
   }
-  .langPill select{
-    width:100%; appearance:none; -webkit-appearance:none;
-    background:transparent; border:none;
-    padding:9px 30px 9px 15px; color:var(--ink-dim);
+  .langPillName{
+    flex:1; min-width:0; appearance:none; -webkit-appearance:none;
+    background:transparent; border:none; cursor:pointer;
+    padding:9px 4px 9px 15px; color:var(--ink-dim);
     font-family:var(--mono); font-size:12.5px; font-weight:500;
     letter-spacing:.1em; text-transform:uppercase; text-align:center;
-    background-image:
-      linear-gradient(45deg,transparent 50%,currentColor 50%),
-      linear-gradient(135deg,currentColor 50%,transparent 50%);
-    background-position:calc(100% - 16px) center, calc(100% - 11px) center;
-    background-size:4px 4px; background-repeat:no-repeat;
     transition:color .2s ease;
   }
-  .langPill select option{ background:#0D1016; color:var(--ink); }
-  .langPill.current select{ color:var(--acc); }
+  .langPill.current .langPillName{ color:var(--acc); }
+  .langPillSelect{
+    flex-shrink:0; width:26px; align-self:stretch; appearance:none; -webkit-appearance:none;
+    background:transparent; border:none; cursor:pointer;
+    color:transparent; /* ซ่อนข้อความภาษาที่ browser วาดเองในตัว select เหลือแค่ลูกศรที่วาดเอง */
+    background-image:
+      linear-gradient(45deg,transparent 50%,rgba(236,234,228,.5) 50%),
+      linear-gradient(135deg,rgba(236,234,228,.5) 50%,transparent 50%);
+    background-position:calc(50% - 4px) center, calc(50% + 1px) center;
+    background-size:4px 4px; background-repeat:no-repeat;
+  }
+  .langPillSelect option{ background:#0D1016; color:var(--ink); }
+  .langPill.current .langPillSelect{
+    background-image:
+      linear-gradient(45deg,transparent 50%,var(--acc) 50%),
+      linear-gradient(135deg,var(--acc) 50%,transparent 50%);
+  }
 
   /* ── บทสนทนา ────────────────────────────────── */
   .chatLog{
@@ -245,18 +256,24 @@
       <div class="brandName">PARLEY</div>
       <div class="brandSub">ล่ามพกพา</div>
     </div>
-    <button class="ghostBtn" id="resetBtn" aria-label="ล้างบทสนทนา">↺</button>
-    <button class="ghostBtn" id="refreshBtn" aria-label="รีเฟรชและตรวจอัปเดต">⟳</button>
+    <button class="ghostBtn" id="resetBtn" aria-label="ล้างบทสนทนา">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6l1 2h4v2H4V5h4l1-2z"/><path d="M6 8h12l-1 12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 8z"/></svg>
+    </button>
+    <button class="ghostBtn" id="refreshBtn" aria-label="รีเฟรชและตรวจอัปเดต">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg>
+    </button>
     <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
   </div>
 
   <div class="langBar">
     <div class="langPill slotA" id="pillLeft" data-slot="0">
-      <select id="langLeft" aria-label="ภาษาฝั่งที่ 1"></select>
+      <button type="button" class="langPillName" id="pillLeftName" aria-label="ให้ฝั่งที่ 1 พูดเทิร์นนี้"></button>
+      <select class="langPillSelect" id="langLeft" aria-label="เปลี่ยนภาษาฝั่งที่ 1"></select>
     </div>
     <button class="ghostBtn" id="swapBtn" aria-label="สลับตำแหน่งภาษา">⇄</button>
     <div class="langPill slotB" id="pillRight" data-slot="1">
-      <select id="langRight" aria-label="ภาษาฝั่งที่ 2"></select>
+      <button type="button" class="langPillName" id="pillRightName" aria-label="ให้ฝั่งที่ 2 พูดเทิร์นนี้"></button>
+      <select class="langPillSelect" id="langRight" aria-label="เปลี่ยนภาษาฝั่งที่ 2"></select>
     </div>
   </div>
 
@@ -338,7 +355,7 @@ const LANGS = [
 const CONTACT_EMAIL = 'glagitproject@gmail.com';
 
 // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์แล้ว push — ปุ่มรีเฟรชใช้เทียบกับเวอร์ชันบนเซิร์ฟเวอร์
-const APP_VERSION = '2026-08-10.5';
+const APP_VERSION = '2026-08-10.6';
 
 const $ = (id) => document.getElementById(id);
 
@@ -355,11 +372,20 @@ buildLangOptions($('langRight'), 'en');
    ชื่อภาษาที่ปุ่มด้านบนเพื่อเลือกเองได้เสมอ ก่อนแตะไมค์แต่ละครั้ง        */
 const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, recognition: null };
 
+// ปุ่มชื่อภาษา (langPillName) กับ select เปลี่ยนภาษา (langPillSelect) เป็นคนละปุ่มกันจริงๆ
+// เพราะเคยลองให้ select เต็มพื้นที่ปุ่มแล้วดักด้วย e.target.tagName แทน — ผลคือทุกจุดที่แตะ
+// โดนตัว select ตลอด (มันเต็มพื้นที่) กลายเป็นเปิด dropdown เลือกภาษาทุกครั้งแทนที่จะตั้งเทิร์น
+function syncPillNames(){
+  $('pillLeftName').textContent = state.langs[0].name;
+  $('pillRightName').textContent = state.langs[1].name;
+}
+
 function onLangChange(){
   state.langs = [
     LANGS.find(l => l.iso === $('langLeft').value) || LANGS[0],
     LANGS.find(l => l.iso === $('langRight').value) || LANGS[1],
   ];
+  syncPillNames();
   updateTurnUI();
 }
 $('langLeft').addEventListener('change', onLangChange);
@@ -372,12 +398,8 @@ $('swapBtn').addEventListener('click', () => {
   onLangChange();
 });
 
-[$('pillLeft'), $('pillRight')].forEach(pill => {
-  pill.addEventListener('click', (e) => {
-    if(e.target.tagName === 'SELECT') return; // ปล่อยให้ select เปิด dropdown ของตัวเอง
-    setTurn(Number(pill.dataset.slot));
-  });
-});
+$('pillLeftName').addEventListener('click', () => setTurn(0));
+$('pillRightName').addEventListener('click', () => setTurn(1));
 
 function setTurn(idx){
   state.turn = idx === 1 ? 1 : 0;
@@ -666,6 +688,7 @@ $('infoBtn').addEventListener('click', () => $('infoModal').classList.add('open'
 $('closeModal').addEventListener('click', () => $('infoModal').classList.remove('open'));
 $('infoModal').addEventListener('click', (e) => { if(e.target.id === 'infoModal') $('infoModal').classList.remove('open'); });
 
+syncPillNames();
 updateTurnUI();
 </script>
 </body>
