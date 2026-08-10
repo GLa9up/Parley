@@ -76,6 +76,8 @@
     transition:color .2s ease, border-color .2s ease, background .2s ease;
   }
   .ghostBtn:hover, .ghostBtn.on{ color:var(--acc); border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
+  .ghostBtn.spinning{ animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
 
   /* ── แถบเลือกภาษา ───────────────────────────── */
   .langBar{ display:flex; align-items:center; gap:10px; padding:2px 18px 14px; flex-shrink:0; }
@@ -244,6 +246,7 @@
       <div class="brandSub">ล่ามพกพา</div>
     </div>
     <button class="ghostBtn" id="resetBtn" aria-label="ล้างบทสนทนา">↺</button>
+    <button class="ghostBtn" id="refreshBtn" aria-label="รีเฟรชและตรวจอัปเดต">⟳</button>
     <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
   </div>
 
@@ -258,7 +261,7 @@
   </div>
 
   <div class="chatLog" id="chatLog">
-    <div class="chatEmpty" id="chatEmpty">แตะไมค์แล้วพูดได้เลย พูดสลับกันไปมา ระบบจะแปลและอ่านออกเสียงให้ทันที</div>
+    <div class="chatEmpty" id="chatEmpty">แตะชื่อภาษาด้านบนว่าใครจะพูด แล้วแตะไมค์เพื่อเริ่มคุย</div>
   </div>
 
   <div class="statusLine" id="statusLine"></div>
@@ -280,8 +283,8 @@
     <div class="modalCard">
       <h3>PARLEY</h3>
       <div class="rule"></div>
-      <p>แตะไมค์แล้วพูดได้เลย ไม่ต้องสนใจว่าใครพูดก่อน — ระบบฟังสองภาษาที่ตั้งไว้พร้อมกันทุกครั้ง แล้วเลือกภาษาที่ตรงกับสิ่งที่พูดจริงให้เอง</p>
-      <p>ใช้ได้แม่นเมื่อสองภาษาที่ตั้งไว้ใช้ตัวอักษรต่างชุดกันชัดเจน (เช่น ไทย/อังกฤษ, จีน/อังกฤษ) — ถ้าใช้ตัวอักษรชุดเดียวกัน (เช่น อังกฤษ/สเปน) แยกไม่ออก ต้องพูดสลับกันตามลำดับ หรือแตะชื่อภาษาด้านบนเพื่อสลับเทิร์นเอง</p>
+      <p>ดูที่ปุ่มไมค์ว่ากำลังจะฟังภาษาอะไร — ถ้าไม่ตรงกับคนที่จะพูด แตะชื่อภาษาที่ปุ่มด้านบนก่อน แล้วค่อยแตะไมค์พูด</p>
+      <p>แปลเสร็จแต่ละครั้ง แอปจะสลับภาษาที่จะฟังให้อัตโนมัติ (คิดว่าอีกฝ่ายจะพูดต่อ) ถ้าคนเดิมพูดต่ออีกรอบ แตะชื่อภาษาแก้ก่อนพูดได้เสมอ</p>
       <p>ใช้ไมค์และลำโพงของเบราว์เซอร์ แปลผ่าน <b>MyMemory API</b> — ฟรี ไม่ต้องใช้คีย์</p>
       <p>รองรับดีที่สุดบน Chrome (Android) — บน iPhone/Safari ถ้าไมค์ไม่ทำงาน ให้กดปุ่ม ⌨ เพื่อพิมพ์แทน</p>
       <button id="closeModal">เข้าใจแล้ว</button>
@@ -334,6 +337,9 @@ const LANGS = [
    แนะนำให้ใช้อีเมลสำรอง ไม่ใช่อีเมลหลัก                                    */
 const CONTACT_EMAIL = 'glagitproject@gmail.com';
 
+// เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์แล้ว push — ปุ่มรีเฟรชใช้เทียบกับเวอร์ชันบนเซิร์ฟเวอร์
+const APP_VERSION = '2026-08-10.5';
+
 const $ = (id) => document.getElementById(id);
 
 function buildLangOptions(select, selectedIso){
@@ -344,9 +350,10 @@ buildLangOptions($('langRight'), 'en');
 
 /* ── สถานะการสนทนา ──────────────────────────────
    state.langs[0]/[1] คือสองภาษาที่ตั้งไว้บนหน้าจอ (ฝั่งซ้าย/ขวา)
-   state.turn (0 หรือ 1) คือ "คาดว่าใครจะพูดต่อ" สลับกันอัตโนมัติทุกครั้ง
-   ที่แปลสำเร็จ ไม่ต้องเลือกว่าใครพูดก่อน แค่แตะไมค์แล้วพูดสลับกันไปได้เลย  */
-const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, activeAttempts: null };
+   state.turn (0 หรือ 1) คือภาษาที่ไมค์จะฟัง "จริง" ในการแตะครั้งถัดไป
+   สลับให้อัตโนมัติหลังแปลเสร็จทุกครั้ง (สมมติว่าอีกฝ่ายพูดต่อ) แต่แตะ
+   ชื่อภาษาที่ปุ่มด้านบนเพื่อเลือกเองได้เสมอ ก่อนแตะไมค์แต่ละครั้ง        */
+const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, recognition: null };
 
 function onLangChange(){
   state.langs = [
@@ -382,8 +389,8 @@ function updateTurnUI(){
   $('pillRight').classList.toggle('current', state.turn === 1);
   $('micBtn').classList.toggle('slotA', state.turn === 0);
   $('micBtn').classList.toggle('slotB', state.turn === 1);
-  $('micBtn').setAttribute('aria-label', 'แตะเพื่อพูด');
-  if(!state.listening) setStatusLine('คาดว่าเทิร์นนี้: ' + lang.name);
+  $('micBtn').setAttribute('aria-label', 'แตะเพื่อพูดภาษา' + lang.name);
+  if(!state.listening) setStatusLine('แตะไมค์เพื่อพูด: ' + lang.name);
 }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -569,85 +576,39 @@ async function handleUtterance(rawText, fromIdx){
   }
 }
 
-/* ── ฟังสองภาษาพร้อมกัน เพื่อเดาภาษาที่พูดจริงจากเสียง ─────────
-   Web Speech API ต้องบอกภาษาก่อนเริ่มฟังเสมอ ไม่มี auto-detect ในตัว
-   ถ้าเดาภาษาผิดไว้ก่อน เอนจินจะบังคับถอดเสียงด้วยสัทศาสตร์ของภาษานั้น
-   ผลที่ได้จึงอาจเพี้ยนจนตรวจตัวอักษรทีหลังไม่ได้ผล — ทางแก้คือให้เอนจิน
-   สองตัวฟังเสียงเดียวกันพร้อมกัน คนละภาษา แล้วเลือกฝั่งที่ถอดเสียงออกมา
-   แล้ว "ตัวอักษรตรงกับภาษาที่ตั้งไว้เอง" เป็นคนชนะ ใช้ได้ผลดีเมื่อสอง
-   ภาษาที่ตั้งไว้ใช้ตัวอักษรคนละชุด (เช่น ไทย/อังกฤษ) — ถ้าใช้ตัวอักษร
-   ชุดเดียวกัน (เช่น อังกฤษ/สเปน) ยังแยกไม่ออก ต้องพึ่งเทิร์นหรือแตะสลับเอง */
+/* ── ฟังตามภาษาที่เลือกไว้เท่านั้น ────────────────────────
+   เคยลองให้เอนจินฟังสองภาษาพร้อมกันแล้วเดาว่าฝั่งไหนถูก แต่ผลจริงคือ
+   ทั้งช้าลง (รอสองเอนจินพร้อมกัน) และเดาผิดได้ง่าย เพราะเอนจินที่ตั้ง
+   ภาษาผิดมักไม่ถอดเสียงออกมาเป็นตัวอักษรที่ผิดชัดๆ แต่ทับศัพท์เป็น
+   ตัวอักษรของภาษาที่ตั้งไว้แทน ทำให้ตรวจตัวอักษรทีหลังก็ยังหลอกได้
+   จึงตัดออก ใช้วิธีตรงไปตรงมากว่า: แตะชื่อภาษาที่ปุ่มด้านบนว่าใครพูด
+   ก่อนพูด แล้วค่อยแตะไมค์ — เทิร์นจะสลับให้อัตโนมัติหลังแปลเสร็จทุกครั้ง
+   เผื่อกรณีคุยสลับกันไปมาปกติ แต่แตะแก้ไขได้เสมอถ้าเดาผิด             */
 
-function recognizeAttempt(lang){
+function stopListening(){
+  if(state.recognition){ try{ state.recognition.stop(); }catch(e){} }
+  state.listening = false;
+  $('micBtn').classList.remove('listening');
+}
+
+function startListening(){
+  if(!speechSupported) return;
+  if(state.listening){ stopListening(); return; }
+  const lang = state.langs[state.turn];
+  const fromIdx = state.turn;
   const rec = new SR();
   rec.lang = lang.speech;
   rec.interimResults = false;
   rec.maxAlternatives = 1;
   rec.continuous = false;
-  const att = { rec, cancelled: false, errorType: null, finish: null, promise: null };
-  att.promise = new Promise((resolve) => {
-    let done = false;
-    att.finish = (text) => { if(done) return; done = true; resolve(text); };
-  });
-  rec.onresult = (e) => att.finish((e.results[0][0].transcript || '').trim());
-  rec.onerror = (e) => { att.errorType = e.error; att.finish(''); };
-  rec.onend = () => att.finish('');
-  setTimeout(() => att.finish(''), 12000); // กันเอนจินค้างไม่ยอมจบ
-  return att;
-}
-
-function resolveDualResult(textA, langA, textB, langB){
-  const okA = !!textA, okB = !!textB;
-  if(!okA && !okB) return null;
-  if(okA && !okB) return { text: textA, fromIdx: 0 };
-  if(okB && !okA) return { text: textB, fromIdx: 1 };
-
-  // ทั้งสองฝั่งถอดเสียงออกมาได้ — เชื่อฝั่งที่ตัวอักษรตรงกับภาษาที่ตั้งไว้เอง
-  const aSelfConsistent = detectScriptIso(textA, langA.iso, langB.iso) === langA.iso;
-  const bSelfConsistent = detectScriptIso(textB, langA.iso, langB.iso) === langB.iso;
-  if(aSelfConsistent && !bSelfConsistent) return { text: textA, fromIdx: 0 };
-  if(bSelfConsistent && !aSelfConsistent) return { text: textB, fromIdx: 1 };
-
-  // เดาไม่ออก (เช่นคู่ภาษาตัวอักษรชุดเดียวกัน) — ใช้เทิร์นที่คาดไว้เป็นตัวตัดสิน
-  return state.turn === 1 ? { text: textB, fromIdx: 1 } : { text: textA, fromIdx: 0 };
-}
-
-function stopListening(){
-  if(state.activeAttempts){
-    state.activeAttempts.forEach(att => { att.cancelled = true; try{ att.rec.abort(); }catch(e){} });
-  }
-  state.listening = false;
-  $('micBtn').classList.remove('listening');
-}
-
-async function startListening(){
-  if(!speechSupported) return;
-  if(state.listening){ stopListening(); return; }
-
-  const langA = state.langs[0], langB = state.langs[1];
-  state.listening = true;
-  $('micBtn').classList.add('listening');
-  setStatusLine('กำลังฟัง…');
-
-  const attA = recognizeAttempt(langA);
-  const attB = recognizeAttempt(langB);
-  state.activeAttempts = [attA, attB];
-  try{ attA.rec.start(); }catch(e){ attA.finish(''); }
-  try{ attB.rec.start(); }catch(e){ attB.finish(''); }
-
-  const [textA, textB] = await Promise.all([attA.promise, attB.promise]);
-  const cancelled = attA.cancelled || attB.cancelled;
-  state.activeAttempts = null;
-  state.listening = false;
-  $('micBtn').classList.remove('listening');
-  if(cancelled){ updateTurnUI(); return; }
-
-  const notAllowed = attA.errorType === 'not-allowed' || attB.errorType === 'not-allowed';
-  if(notAllowed){ setStatusLine('กรุณาอนุญาตให้ใช้ไมโครโฟน', true); return; }
-
-  const winner = resolveDualResult(textA, langA, textB, langB);
-  if(!winner){ setStatusLine('ไม่ได้ยินเสียง ลองใหม่', true); return; }
-  handleUtterance(winner.text, winner.fromIdx);
+  rec.onstart = () => { state.listening = true; $('micBtn').classList.add('listening'); setStatusLine('กำลังฟัง: ' + lang.name + '…'); };
+  rec.onresult = (e) => { handleUtterance(e.results[0][0].transcript, fromIdx); };
+  rec.onerror = (e) => {
+    setStatusLine(e.error === 'not-allowed' ? 'กรุณาอนุญาตให้ใช้ไมโครโฟน' : 'ไม่ได้ยินเสียง ลองใหม่', true);
+  };
+  rec.onend = () => { state.listening = false; $('micBtn').classList.remove('listening'); };
+  state.recognition = rec;
+  try{ rec.start(); }catch(e){ setStatusLine('ไมโครโฟนไม่พร้อมใช้งาน', true); }
 }
 $('micBtn').addEventListener('click', startListening);
 
@@ -673,6 +634,32 @@ $('resetBtn').addEventListener('click', () => {
   $('chatLog').querySelectorAll('.msg').forEach(m => m.remove());
   $('chatEmpty').style.display = '';
   updateTurnUI();
+});
+
+// เช็คว่าไฟล์บนเซิร์ฟเวอร์เป็นเวอร์ชันใหม่กว่าที่โหลดอยู่ไหม (มือถือบางเครื่องแคชหน้าเว็บไว้เหนียวมาก)
+// ถ้าใหม่กว่า โหลดหน้าใหม่ทันทีแบบ bypass cache — ถ้าเช็คไม่ได้ก็รีเฟรชเฉยๆ เหมือนปุ่มรีเฟรชทั่วไป
+$('refreshBtn').addEventListener('click', async () => {
+  const btn = $('refreshBtn');
+  btn.classList.add('spinning');
+  setStatusLine('กำลังตรวจสอบเวอร์ชัน…');
+  try{
+    const res = await fetch(location.pathname + '?_=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) throw new Error('fetch-failed');
+    const html = await res.text();
+    const m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    const remoteVersion = m ? m[1] : null;
+    if(!remoteVersion || remoteVersion !== APP_VERSION){
+      setStatusLine(remoteVersion ? 'พบเวอร์ชันใหม่ กำลังโหลด…' : 'กำลังรีเฟรช…');
+      location.href = location.pathname + '?v=' + Date.now();
+      return;
+    }
+    setStatusLine('เป็นเวอร์ชันล่าสุดแล้ว');
+    setTimeout(updateTurnUI, 2200);
+  }catch(e){
+    setStatusLine('ตรวจสอบเวอร์ชันไม่สำเร็จ ตรวจอินเทอร์เน็ต', true);
+  }finally{
+    btn.classList.remove('spinning');
+  }
 });
 
 $('infoBtn').addEventListener('click', () => $('infoModal').classList.add('open'));
