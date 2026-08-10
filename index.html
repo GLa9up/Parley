@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Parley">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#06070A">
+<title>PARLEY — สนทนาข้ามภาษา</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306070A'/%3E%3Cpath d='M14 22h36M14 32h36M14 42h22' stroke='%23E3C489' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#06070A;
+    --ink:#ECEAE4;
+    --ink-dim:rgba(236,234,228,.55);
+    --hair:rgba(255,255,255,.09);
+    --hair-soft:rgba(255,255,255,.055);
+    --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    --disp:'Cormorant Garamond', Georgia, serif;
+    --body:'Inter','IBM Plex Sans Thai', system-ui, -apple-system, sans-serif;
+  }
+
+  /* ฝั่งบน — แชมเปญโกลด์บนพื้นเขียวหมึก */
+  .panelA{
+    --acc:#E3C489; --acc-2:#C4A264; --acc-ink:#1E1607;
+    --g1:#090F10; --g2:#111F1E;
+    --glow:rgba(227,196,137,.11);
+    --glow-hard:rgba(227,196,137,.30);
+  }
+  /* ฝั่งล่าง — แซฟไฟร์ซีดบนพื้นน้ำเงินหมึก */
+  .panelB{
+    --acc:#9FC2DE; --acc-2:#7BA3C4; --acc-ink:#07131C;
+    --g1:#090B12; --g2:#131A28;
+    --glow:rgba(159,194,222,.11);
+    --glow-hard:rgba(159,194,222,.30);
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0; background:var(--bg); overscroll-behavior:none;}
+  body{
+    font-family:var(--body); color:var(--ink);
+    display:flex; flex-direction:column; height:100dvh; width:100vw; overflow:hidden;
+    padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
+    -webkit-font-smoothing:antialiased;
+  }
+  button, select, input{font-family:inherit; color:inherit;}
+  button:focus-visible, select:focus-visible, input:focus-visible{
+    outline:1px solid var(--acc, #fff); outline-offset:3px;
+  }
+
+  /* ── แผงสนทนา ───────────────────────────────── */
+  .panel{
+    flex:1; position:relative; display:flex; flex-direction:column;
+    align-items:center; justify-content:space-between;
+    padding:16px 20px 22px; gap:12px; min-height:0;
+    background:
+      radial-gradient(76% 46% at 50% 100%, var(--glow), transparent 72%),
+      linear-gradient(180deg, var(--g1) 0%, var(--g2) 100%);
+  }
+  .panelA{ transform:rotate(180deg); }
+
+  .panelTop{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+
+  .langSelectWrap select{
+    appearance:none; -webkit-appearance:none;
+    background:rgba(255,255,255,.045);
+    border:1px solid var(--hair); border-radius:999px;
+    padding:9px 34px 9px 15px; color:var(--acc);
+    font-family:var(--mono); font-size:11.5px; font-weight:500;
+    letter-spacing:.13em; text-transform:uppercase;
+    background-image:
+      linear-gradient(45deg,transparent 50%,currentColor 50%),
+      linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 18px) center, calc(100% - 13px) center;
+    background-size:4px 4px; background-repeat:no-repeat;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .langSelectWrap select option{ background:#0D1016; color:var(--ink); }
+
+  .ghostBtn{
+    width:38px; height:38px; border-radius:999px;
+    border:1px solid var(--hair); background:rgba(255,255,255,.035);
+    color:var(--ink-dim); font-size:15px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    transition:color .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .ghostBtn:hover, .ghostBtn.on{ color:var(--acc); border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
+
+  /* ── เวทีข้อความ ────────────────────────────── */
+  .stage{
+    flex:1; width:100%; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:12px; min-height:0; overflow:hidden;
+  }
+  .translated{
+    font-size:clamp(1.4rem, 5.8vw, 2.35rem); font-weight:500; line-height:1.34;
+    letter-spacing:-.005em; text-align:center; text-wrap:balance;
+    max-height:100%; overflow-y:auto; padding:0 4px;
+    text-shadow:0 1px 24px rgba(0,0,0,.4);
+  }
+  .original{
+    font-family:var(--mono); font-size:.74rem; letter-spacing:.02em;
+    color:var(--ink-dim); opacity:.7; text-align:center; min-height:1em;
+    max-width:92%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .status{
+    font-family:var(--mono); font-size:.63rem; text-transform:uppercase;
+    letter-spacing:.22em; min-height:1.2em; color:var(--acc); opacity:.75;
+  }
+
+  /* ── ช่องพิมพ์ ──────────────────────────────── */
+  .textForm{
+    width:100%; max-height:0; opacity:0; overflow:hidden;
+    transition:max-height .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
+    display:flex; gap:9px;
+  }
+  .textForm.open{ max-height:64px; opacity:1; margin-top:2px; }
+  .textForm input{
+    flex:1; min-width:0; border-radius:999px;
+    border:1px solid var(--hair); background:rgba(255,255,255,.05);
+    padding:12px 18px; font-size:15px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  .textForm input::placeholder{ color:rgba(236,234,228,.32); }
+  .textForm button{
+    border-radius:999px; border:none; padding:0 22px;
+    font-weight:600; font-size:13.5px; letter-spacing:.04em; cursor:pointer;
+    background:linear-gradient(160deg, var(--acc), var(--acc-2)); color:var(--acc-ink);
+  }
+
+  /* ── ปุ่มไมค์ ───────────────────────────────── */
+  .micBtn{
+    width:86px; height:86px; border-radius:50%; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    position:relative; flex-shrink:0;
+    background:linear-gradient(155deg, var(--acc) 0%, var(--acc-2) 100%);
+    color:var(--acc-ink);
+    box-shadow:
+      0 14px 40px -12px var(--glow-hard),
+      0 2px 10px rgba(0,0,0,.45),
+      inset 0 1px 0 rgba(255,255,255,.45);
+    transition:transform .18s ease, box-shadow .25s ease;
+  }
+  .micBtn:active{ transform:scale(.95); }
+  .micBtn::before{
+    content:''; position:absolute; inset:-11px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.10); transition:border-color .3s ease;
+  }
+  .micBtn svg{ width:30px; height:30px; }
+  .micBtn.listening::before{ border-color:var(--glow-hard); }
+  .micBtn.listening{ animation:pulse 1.9s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes pulse{
+    0%{   box-shadow:0 14px 40px -12px var(--glow-hard), 0 0 0 0 var(--glow-hard), inset 0 1px 0 rgba(255,255,255,.45); }
+    70%{  box-shadow:0 14px 40px -12px var(--glow-hard), 0 0 0 26px rgba(255,255,255,0), inset 0 1px 0 rgba(255,255,255,.45); }
+    100%{ box-shadow:0 14px 40px -12px var(--glow-hard), 0 0 0 0 rgba(255,255,255,0), inset 0 1px 0 rgba(255,255,255,.45); }
+  }
+
+  /* ── รอยต่อกลางจอ + โลโก้ ───────────────────── */
+  .seam{
+    height:74px; flex-shrink:0; position:relative;
+    background:linear-gradient(180deg,#04050700,#050609 22%,#050609 78%,#04050700);
+    background-color:#050609;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 18px; gap:14px;
+    border-top:1px solid var(--hair-soft); border-bottom:1px solid var(--hair-soft);
+  }
+  .brand{ display:flex; flex-direction:column; align-items:center; gap:9px; flex:1; min-width:0; }
+  .brandName{
+    font-family:var(--disp); font-weight:600; font-size:20px; line-height:1;
+    letter-spacing:.44em; text-indent:.44em; color:#EFE9DC; white-space:nowrap;
+  }
+  .brandName em{ font-style:normal; color:var(--ink-dim); }
+  .seamBar{
+    width:100%; max-width:190px; height:2px; border-radius:2px;
+    background:rgba(255,255,255,.10); position:relative; overflow:hidden;
+  }
+  .seamBar::after{
+    content:''; position:absolute; inset:0; border-radius:2px;
+    background:rgba(255,255,255,.28); transform:scaleX(0); transform-origin:center;
+  }
+  .seamBar.active::after{ animation:seamPulse 1.3s cubic-bezier(.4,0,.2,1) infinite; }
+  .seamBar.activeA::after{ background:linear-gradient(90deg,transparent,#E3C489,transparent); }
+  .seamBar.activeB::after{ background:linear-gradient(90deg,transparent,#9FC2DE,transparent); }
+  @keyframes seamPulse{ 0%,100%{transform:scaleX(.12); opacity:.6;} 50%{transform:scaleX(1); opacity:1;} }
+  .seam .ghostBtn{ --acc:#EFE9DC; width:36px; height:36px; font-size:14px; }
+
+  /* ── โมดัล ──────────────────────────────────── */
+  .modal{
+    position:fixed; inset:0; background:rgba(4,5,7,.78); backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    display:none; align-items:center; justify-content:center; z-index:20; padding:24px;
+  }
+  .modal.open{ display:flex; animation:fade .25s ease; }
+  @keyframes fade{ from{opacity:0} to{opacity:1} }
+  .modalCard{
+    background:linear-gradient(170deg,#12141B,#0B0D12);
+    border:1px solid var(--hair); border-radius:20px; padding:26px 24px 22px;
+    max-width:360px; font-size:14px; line-height:1.75; color:rgba(236,234,228,.78);
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.85);
+  }
+  .modalCard h3{
+    font-family:var(--disp); font-weight:600; margin:0; font-size:26px;
+    letter-spacing:.34em; text-indent:.34em; color:#EFE9DC; text-align:center;
+  }
+  .modalCard .rule{
+    height:1px; margin:16px 0 18px;
+    background:linear-gradient(90deg,transparent,rgba(227,196,137,.45),transparent);
+  }
+  .modalCard p{ margin:0 0 12px; }
+  .modalCard p:last-of-type{ margin-bottom:0; }
+  .modalCard b{ color:#E3C489; font-weight:600; }
+  .modalCard button{
+    margin-top:20px; width:100%; padding:12px; border-radius:999px; border:none;
+    background:linear-gradient(160deg,#EFE3CB,#CBB284); color:#1E1607;
+    font-weight:600; font-size:14px; letter-spacing:.04em; cursor:pointer;
+  }
+
+  @media (max-height:640px){
+    .micBtn{ width:72px; height:72px; }
+    .seam{ height:64px; }
+    .brandName{ font-size:17px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .micBtn.listening{ animation:none; }
+    .seamBar.active::after{ animation:none; transform:scaleX(1); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="panel panelA" id="panelWrapA">
+    <div class="panelTop">
+      <div class="langSelectWrap"><select id="langA" aria-label="ภาษาฝั่งบน"></select></div>
+      <button class="ghostBtn textToggle" data-panel="A" aria-label="พิมพ์แทนการพูด">⌨</button>
+    </div>
+    <div class="stage">
+      <div class="translated" id="translatedA"></div>
+      <div class="original" id="originalA"></div>
+      <div class="status" id="statusA">แตะไมค์เพื่อพูด</div>
+    </div>
+    <form class="textForm" id="textFormA">
+      <input id="textInputA" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off">
+      <button type="submit">ส่ง</button>
+    </form>
+    <button class="micBtn" id="micA" aria-label="กดพูดฝั่งบน">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-3.06A9 9 0 0 0 21 11h-2z"/></svg>
+    </button>
+  </div>
+
+  <div class="seam">
+    <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
+    <div class="brand">
+      <div class="brandName">PARLEY</div>
+      <div class="seamBar" id="seamBar"></div>
+    </div>
+    <button class="ghostBtn" id="swapBtn" aria-label="สลับภาษา">⇄</button>
+  </div>
+
+  <div class="panel panelB" id="panelWrapB">
+    <div class="panelTop">
+      <div class="langSelectWrap"><select id="langB" aria-label="ภาษาฝั่งล่าง"></select></div>
+      <button class="ghostBtn textToggle" data-panel="B" aria-label="พิมพ์แทนการพูด">⌨</button>
+    </div>
+    <div class="stage">
+      <div class="translated" id="translatedB"></div>
+      <div class="original" id="originalB"></div>
+      <div class="status" id="statusB">แตะไมค์เพื่อพูด</div>
+    </div>
+    <form class="textForm" id="textFormB">
+      <input id="textInputB" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off">
+      <button type="submit">ส่ง</button>
+    </form>
+    <button class="micBtn" id="micB" aria-label="กดพูดฝั่งล่าง">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-3.06A9 9 0 0 0 21 11h-2z"/></svg>
+    </button>
+  </div>
+
+  <div class="modal" id="infoModal">
+    <div class="modalCard">
+      <h3>PARLEY</h3>
+      <div class="rule"></div>
+      <p>วางมือถือไว้ระหว่างคุณกับคู่สนทนา — ฝั่งบนจะ<b>กลับหัว</b>ให้อีกฝ่ายอ่านได้พอดี</p>
+      <p>แตะไมค์ฝั่งของตัวเองแล้วพูด ระบบจะแปลและอ่านออกเสียงให้อีกฝั่งทันที</p>
+      <p>ใช้ไมค์และลำโพงของเบราว์เซอร์ แปลผ่าน <b>MyMemory API</b> — ฟรี ไม่ต้องใช้คีย์</p>
+      <p>รองรับดีที่สุดบน Chrome (Android) — บน iPhone/Safari ถ้าไมค์ไม่ทำงาน ให้กดปุ่ม ⌨ เพื่อพิมพ์แทน</p>
+      <button id="closeModal">เข้าใจแล้ว</button>
+    </div>
+  </div>
+
+<script>
+const LANGS = [
+  {name:"ไทย", iso:"th", speech:"th-TH"},
+  {name:"อังกฤษ", iso:"en", speech:"en-US"},
+  {name:"จีนกลาง", iso:"zh", speech:"zh-CN"},
+  {name:"ญี่ปุ่น", iso:"ja", speech:"ja-JP"},
+  {name:"เกาหลี", iso:"ko", speech:"ko-KR"},
+  {name:"เวียดนาม", iso:"vi", speech:"vi-VN"},
+  {name:"ลาว", iso:"lo", speech:"lo-LA"},
+  {name:"เขมร", iso:"km", speech:"km-KH"},
+  {name:"พม่า", iso:"my", speech:"my-MM"},
+  {name:"อินโดนีเซีย", iso:"id", speech:"id-ID"},
+  {name:"มาเลย์", iso:"ms", speech:"ms-MY"},
+  {name:"ฟิลิปิโน", iso:"tl", speech:"fil-PH"},
+  {name:"ฮินดี", iso:"hi", speech:"hi-IN"},
+  {name:"อาหรับ", iso:"ar", speech:"ar-SA"},
+  {name:"รัสเซีย", iso:"ru", speech:"ru-RU"},
+  {name:"สเปน", iso:"es", speech:"es-ES"},
+  {name:"ฝรั่งเศส", iso:"fr", speech:"fr-FR"},
+  {name:"เยอรมัน", iso:"de", speech:"de-DE"},
+  {name:"อิตาลี", iso:"it", speech:"it-IT"},
+  {name:"โปรตุเกส", iso:"pt", speech:"pt-PT"},
+  {name:"ดัตช์", iso:"nl", speech:"nl-NL"},
+  {name:"ตุรกี", iso:"tr", speech:"tr-TR"},
+  {name:"โปแลนด์", iso:"pl", speech:"pl-PL"},
+  {name:"สวีเดน", iso:"sv", speech:"sv-SE"},
+  {name:"เบงกาลี", iso:"bn", speech:"bn-BD"},
+  {name:"อูรดู", iso:"ur", speech:"ur-PK"},
+  {name:"เปอร์เซีย", iso:"fa", speech:"fa-IR"},
+  {name:"ฮีบรู", iso:"he", speech:"he-IL"},
+  {name:"กรีก", iso:"el", speech:"el-GR"},
+  {name:"เช็ก", iso:"cs", speech:"cs-CZ"},
+  {name:"โรมาเนีย", iso:"ro", speech:"ro-RO"},
+  {name:"ฮังการี", iso:"hu", speech:"hu-HU"},
+  {name:"ฟินแลนด์", iso:"fi", speech:"fi-FI"},
+  {name:"เดนมาร์ก", iso:"da", speech:"da-DK"},
+  {name:"นอร์เวย์", iso:"no", speech:"nb-NO"},
+  {name:"ยูเครน", iso:"uk", speech:"uk-UA"},
+];
+
+const $ = (id) => document.getElementById(id);
+const state = { listening: null, recognition: null };
+
+function buildLangOptions(select, selectedIso){
+  select.innerHTML = LANGS.map(l => `<option value="${l.iso}" ${l.iso===selectedIso?'selected':''}>${l.name}</option>`).join('');
+}
+buildLangOptions($('langA'), 'th');
+buildLangOptions($('langB'), 'en');
+
+function getLang(panel){
+  const iso = $('lang'+panel).value;
+  return LANGS.find(l => l.iso === iso) || LANGS[0];
+}
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speechSupported = !!SR;
+if(!speechSupported){
+  $('micA').style.display = 'none';
+  $('micB').style.display = 'none';
+  $('textFormA').classList.add('open');
+  $('textFormB').classList.add('open');
+  $('statusA').textContent = 'พิมพ์ข้อความด้านล่าง';
+  $('statusB').textContent = 'พิมพ์ข้อความด้านล่าง';
+}
+
+let voicesCache = [];
+function loadVoices(){ voicesCache = speechSynthesis.getVoices ? speechSynthesis.getVoices() : []; }
+if('speechSynthesis' in window){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+
+function pickVoice(speechLangCode){
+  if(!voicesCache.length) return null;
+  return voicesCache.find(v => v.lang === speechLangCode) ||
+         voicesCache.find(v => v.lang && v.lang.startsWith(speechLangCode.split('-')[0])) ||
+         null;
+}
+
+function speak(text, speechLangCode){
+  if(!('speechSynthesis' in window) || !text) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = speechLangCode;
+    const v = pickVoice(speechLangCode);
+    if(v) u.voice = v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+function setSeam(activePanel){
+  const bar = $('seamBar');
+  bar.className = 'seamBar' + (activePanel ? ' active active' + activePanel : '');
+}
+function setStatus(panel, text){ $('status'+panel).textContent = text; }
+function setMicState(panel, on){ $('mic'+panel).classList.toggle('listening', on); }
+
+async function translateText(text, fromIso, toIso){
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromIso}|${toIso}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('network');
+  const data = await res.json();
+  if(!data || !data.responseData || typeof data.responseData.translatedText !== 'string'){
+    throw new Error('bad-response');
+  }
+  return data.responseData.translatedText;
+}
+
+async function handleTranscript(panel, text){
+  if(!text || !text.trim()) return;
+  const other = panel === 'A' ? 'B' : 'A';
+  const fromLang = getLang(panel);
+  const toLang = getLang(other);
+  $('original'+panel).textContent = text;
+  setStatus(panel, 'กำลังแปล…');
+  setStatus(other, 'กำลังแปล…');
+  try{
+    const translated = await translateText(text, fromLang.iso, toLang.iso);
+    $('translated'+other).textContent = translated;
+    setStatus(panel, 'ส่งแล้ว');
+    setStatus(other, 'กำลังพูด…');
+    speak(translated, toLang.speech);
+    setTimeout(() => { setStatus(panel, ''); setStatus(other, ''); }, 2500);
+  }catch(err){
+    setStatus(panel, 'แปลไม่สำเร็จ ลองแตะไมค์อีกครั้ง');
+    setStatus(other, '');
+  }
+}
+
+function stopListening(){
+  if(state.recognition){ try{ state.recognition.stop(); }catch(e){} }
+  state.listening = null;
+  setMicState('A', false); setMicState('B', false);
+  setSeam(null);
+}
+
+function startListening(panel){
+  if(!speechSupported) return;
+  if(state.listening === panel){ stopListening(); return; }
+  stopListening();
+  const lang = getLang(panel);
+  const rec = new SR();
+  rec.lang = lang.speech;
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  rec.continuous = false;
+  rec.onstart = () => { state.listening = panel; setMicState(panel, true); setSeam(panel); setStatus(panel, 'กำลังฟัง…'); };
+  rec.onresult = (e) => { const t = e.results[0][0].transcript; handleTranscript(panel, t); };
+  rec.onerror = (e) => {
+    setStatus(panel, e.error === 'not-allowed' ? 'กรุณาอนุญาตให้ใช้ไมโครโฟน' : 'ไม่ได้ยินเสียง ลองใหม่');
+  };
+  rec.onend = () => { setMicState(panel, false); setSeam(null); state.listening = null; };
+  state.recognition = rec;
+  try{ rec.start(); }catch(e){ setStatus(panel, 'ไมโครโฟนไม่พร้อมใช้งาน'); }
+}
+
+$('micA').addEventListener('click', () => startListening('A'));
+$('micB').addEventListener('click', () => startListening('B'));
+
+['A','B'].forEach(panel => {
+  $('textForm'+panel).addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('textInput'+panel);
+    const v = input.value;
+    input.value = '';
+    handleTranscript(panel, v);
+  });
+});
+
+document.querySelectorAll('.textToggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const open = $('textForm'+btn.dataset.panel).classList.toggle('open');
+    btn.classList.toggle('on', open);
+  });
+});
+
+$('swapBtn').addEventListener('click', () => {
+  const a = $('langA').value, b = $('langB').value;
+  buildLangOptions($('langA'), b);
+  buildLangOptions($('langB'), a);
+});
+
+$('infoBtn').addEventListener('click', () => $('infoModal').classList.add('open'));
+$('closeModal').addEventListener('click', () => $('infoModal').classList.remove('open'));
+$('infoModal').addEventListener('click', (e) => { if(e.target.id === 'infoModal') $('infoModal').classList.remove('open'); });
+</script>
+</body>
+</html>
