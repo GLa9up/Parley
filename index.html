@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Parley">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#06070A">
-<title>PARLEY — สนทนาข้ามภาษา</title>
+<title>PARLEY — ล่ามพกพา</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2306070A'/%3E%3Cpath d='M14 22h36M14 32h36M14 42h22' stroke='%23E3C489' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -24,19 +24,15 @@
     --body:'Inter','IBM Plex Sans Thai', system-ui, -apple-system, sans-serif;
   }
 
-  /* ฝั่งบน — แชมเปญโกลด์บนพื้นเขียวหมึก */
-  .panelA{
+  /* ฝั่งที่ 1 — แชมเปญโกลด์ */
+  .slotA{
     --acc:#E3C489; --acc-2:#C4A264; --acc-ink:#1E1607;
-    --g1:#090F10; --g2:#111F1E;
-    --glow:rgba(227,196,137,.11);
-    --glow-hard:rgba(227,196,137,.30);
+    --glow:rgba(227,196,137,.16); --glow-hard:rgba(227,196,137,.32);
   }
-  /* ฝั่งล่าง — แซฟไฟร์ซีดบนพื้นน้ำเงินหมึก */
-  .panelB{
+  /* ฝั่งที่ 2 — แซฟไฟร์ซีด */
+  .slotB{
     --acc:#9FC2DE; --acc-2:#7BA3C4; --acc-ink:#07131C;
-    --g1:#090B12; --g2:#131A28;
-    --glow:rgba(159,194,222,.11);
-    --glow-hard:rgba(159,194,222,.30);
+    --glow:rgba(159,194,222,.16); --glow-hard:rgba(159,194,222,.32);
   }
 
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -46,43 +42,31 @@
     display:flex; flex-direction:column; height:100dvh; width:100vw; overflow:hidden;
     padding-top:env(safe-area-inset-top); padding-bottom:env(safe-area-inset-bottom);
     -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(70% 40% at 50% 100%, rgba(159,194,222,.05), transparent 72%),
+      radial-gradient(60% 32% at 50% 0%, rgba(227,196,137,.05), transparent 72%),
+      var(--bg);
   }
   button, select, input{font-family:inherit; color:inherit;}
   button:focus-visible, select:focus-visible, input:focus-visible{
     outline:1px solid var(--acc, #fff); outline-offset:3px;
   }
 
-  /* ── แผงสนทนา ───────────────────────────────── */
-  .panel{
-    flex:1; position:relative; display:flex; flex-direction:column;
-    align-items:center; justify-content:space-between;
-    padding:16px 20px 22px; gap:12px; min-height:0;
-    background:
-      radial-gradient(76% 46% at 50% 100%, var(--glow), transparent 72%),
-      linear-gradient(180deg, var(--g1) 0%, var(--g2) 100%);
+  /* ── หัวเรื่อง ───────────────────────────────── */
+  .top{ display:flex; align-items:center; gap:12px; padding:16px 18px 10px; flex-shrink:0; }
+  .brand{ display:flex; flex-direction:column; }
+  .brandName{
+    font-family:var(--disp); font-weight:600; font-size:21px; line-height:1;
+    letter-spacing:.32em; text-indent:.32em; color:#EFE9DC;
   }
-  .panelA{ transform:rotate(180deg); }
-
-  .panelTop{ width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-
-  .langSelectWrap select{
-    appearance:none; -webkit-appearance:none;
-    background:rgba(255,255,255,.045);
-    border:1px solid var(--hair); border-radius:999px;
-    padding:9px 34px 9px 15px; color:var(--acc);
-    font-family:var(--mono); font-size:11.5px; font-weight:500;
-    letter-spacing:.13em; text-transform:uppercase;
-    background-image:
-      linear-gradient(45deg,transparent 50%,currentColor 50%),
-      linear-gradient(135deg,currentColor 50%,transparent 50%);
-    background-position:calc(100% - 18px) center, calc(100% - 13px) center;
-    background-size:4px 4px; background-repeat:no-repeat;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  .brandSub{
+    font-family:var(--body); font-weight:500; font-size:10.5px;
+    letter-spacing:.14em; color:var(--ink-dim); margin-top:6px;
   }
-  .langSelectWrap select option{ background:#0D1016; color:var(--ink); }
+  .top .ghostBtn{ margin-left:auto; --acc:#EFE9DC; }
 
   .ghostBtn{
-    width:38px; height:38px; border-radius:999px;
+    width:38px; height:38px; border-radius:999px; flex-shrink:0;
     border:1px solid var(--hair); background:rgba(255,255,255,.035);
     color:var(--ink-dim); font-size:15px; line-height:1; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
@@ -91,40 +75,77 @@
   }
   .ghostBtn:hover, .ghostBtn.on{ color:var(--acc); border-color:rgba(255,255,255,.18); background:rgba(255,255,255,.07); }
 
-  /* ── เวทีข้อความ ────────────────────────────── */
-  .stage{
-    flex:1; width:100%; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:12px; min-height:0; overflow:hidden;
+  /* ── แถบเลือกภาษา ───────────────────────────── */
+  .langBar{ display:flex; align-items:center; gap:10px; padding:2px 18px 14px; flex-shrink:0; }
+  .langPill{
+    flex:1; min-width:0; display:flex; align-items:center;
+    border-radius:999px; border:1px solid var(--hair); background:rgba(255,255,255,.03);
+    padding:2px; cursor:pointer;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
   }
-  .translated{
-    font-size:clamp(1.4rem, 5.8vw, 2.35rem); font-weight:500; line-height:1.34;
-    letter-spacing:-.005em; text-align:center; text-wrap:balance;
-    max-height:100%; overflow-y:auto; padding:0 4px;
-    text-shadow:0 1px 24px rgba(0,0,0,.4);
+  .langPill.current{
+    border-color:var(--acc); background:rgba(255,255,255,.055);
+    box-shadow:0 0 0 1px var(--acc) inset, 0 8px 22px -10px var(--glow-hard);
   }
-  .original{
-    font-family:var(--mono); font-size:.74rem; letter-spacing:.02em;
-    color:var(--ink-dim); opacity:.7; text-align:center; min-height:1em;
-    max-width:92%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  .langPill select{
+    width:100%; appearance:none; -webkit-appearance:none;
+    background:transparent; border:none;
+    padding:9px 30px 9px 15px; color:var(--ink-dim);
+    font-family:var(--mono); font-size:11.5px; font-weight:500;
+    letter-spacing:.1em; text-transform:uppercase; text-align:center;
+    background-image:
+      linear-gradient(45deg,transparent 50%,currentColor 50%),
+      linear-gradient(135deg,currentColor 50%,transparent 50%);
+    background-position:calc(100% - 16px) center, calc(100% - 11px) center;
+    background-size:4px 4px; background-repeat:no-repeat;
+    transition:color .2s ease;
   }
-  .status{
+  .langPill select option{ background:#0D1016; color:var(--ink); }
+  .langPill.current select{ color:var(--acc); }
+
+  /* ── บทสนทนา ────────────────────────────────── */
+  .chatLog{
+    flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch;
+    display:flex; flex-direction:column; gap:7px;
+    padding:6px 16px 12px; scroll-behavior:smooth;
+  }
+  .chatEmpty{
+    margin:auto; color:var(--ink-dim); opacity:.5;
+    font-size:13.5px; text-align:center; padding:20px; max-width:220px; line-height:1.6;
+  }
+  .msg{ max-width:84%; padding:11px 15px; border-radius:18px; animation:msgIn .28s cubic-bezier(.4,0,.2,1); }
+  .msg .msgText{ font-size:1.05rem; font-weight:500; line-height:1.46; text-wrap:balance; }
+  .msg .msgOrig{ font-family:var(--mono); font-size:.66rem; letter-spacing:.01em; opacity:.5; margin-top:5px; line-height:1.4; }
+  .msg-left{
+    align-self:flex-start;
+    background:linear-gradient(160deg, rgba(227,196,137,.14), rgba(227,196,137,.045));
+    border:1px solid rgba(227,196,137,.22); border-bottom-left-radius:5px;
+  }
+  .msg-right{
+    align-self:flex-end; text-align:right;
+    background:linear-gradient(160deg, rgba(159,194,222,.14), rgba(159,194,222,.045));
+    border:1px solid rgba(159,194,222,.22); border-bottom-right-radius:5px;
+  }
+  @keyframes msgIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;} }
+
+  /* ── สถานะ ──────────────────────────────────── */
+  .statusLine{
     font-family:var(--mono); font-size:.63rem; text-transform:uppercase;
-    letter-spacing:.22em; min-height:1.2em; color:var(--acc); opacity:.75;
-    text-align:center; max-width:92%;
+    letter-spacing:.18em; min-height:1.4em; color:var(--ink-dim);
+    text-align:center; padding:2px 24px; flex-shrink:0;
   }
-  /* ข้อความแจ้งปัญหา — ยาวกว่าและต้องอ่านง่าย จึงถอดสไตล์ตัวพิมพ์เล็กหนาแน่นออก */
-  .status.err{
+  .statusLine.err{
     font-family:var(--body); font-size:.82rem; text-transform:none;
-    letter-spacing:0; line-height:1.5; color:#E8A9A0; opacity:1;
+    letter-spacing:0; line-height:1.5; color:#E8A9A0;
   }
 
   /* ── ช่องพิมพ์ ──────────────────────────────── */
   .textForm{
-    width:100%; max-height:0; opacity:0; overflow:hidden;
+    width:100%; max-height:0; opacity:0; overflow:hidden; flex-shrink:0;
     transition:max-height .3s cubic-bezier(.4,0,.2,1), opacity .25s ease;
-    display:flex; gap:9px;
+    display:flex; gap:9px; padding:0 18px;
   }
-  .textForm.open{ max-height:64px; opacity:1; margin-top:2px; }
+  .textForm.open{ max-height:64px; opacity:1; margin-bottom:10px; }
   .textForm input{
     flex:1; min-width:0; border-radius:999px;
     border:1px solid var(--hair); background:rgba(255,255,255,.05);
@@ -135,12 +156,18 @@
   .textForm button{
     border-radius:999px; border:none; padding:0 22px;
     font-weight:600; font-size:13.5px; letter-spacing:.04em; cursor:pointer;
-    background:linear-gradient(160deg, var(--acc), var(--acc-2)); color:var(--acc-ink);
+    background:linear-gradient(160deg,#EFE3CB,#CBB284); color:#1E1607;
   }
 
-  /* ── ปุ่มไมค์ ───────────────────────────────── */
+  /* ── แถบควบคุมล่าง ──────────────────────────── */
+  .bottomBar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:4px 22px 18px; flex-shrink:0;
+  }
+  .bottomBar .spacer{ width:38px; flex-shrink:0; }
+
   .micBtn{
-    width:86px; height:86px; border-radius:50%; border:none; cursor:pointer;
+    width:84px; height:84px; border-radius:50%; border:none; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     position:relative; flex-shrink:0;
     background:linear-gradient(155deg, var(--acc) 0%, var(--acc-2) 100%);
@@ -149,14 +176,14 @@
       0 14px 40px -12px var(--glow-hard),
       0 2px 10px rgba(0,0,0,.45),
       inset 0 1px 0 rgba(255,255,255,.45);
-    transition:transform .18s ease, box-shadow .25s ease;
+    transition:transform .18s ease, box-shadow .3s ease, background .3s ease;
   }
   .micBtn:active{ transform:scale(.95); }
   .micBtn::before{
     content:''; position:absolute; inset:-11px; border-radius:50%;
     border:1px solid rgba(255,255,255,.10); transition:border-color .3s ease;
   }
-  .micBtn svg{ width:30px; height:30px; }
+  .micBtn svg{ width:29px; height:29px; }
   .micBtn.listening::before{ border-color:var(--glow-hard); }
   .micBtn.listening{ animation:pulse 1.9s cubic-bezier(.4,0,.2,1) infinite; }
   @keyframes pulse{
@@ -164,35 +191,6 @@
     70%{  box-shadow:0 14px 40px -12px var(--glow-hard), 0 0 0 26px rgba(255,255,255,0), inset 0 1px 0 rgba(255,255,255,.45); }
     100%{ box-shadow:0 14px 40px -12px var(--glow-hard), 0 0 0 0 rgba(255,255,255,0), inset 0 1px 0 rgba(255,255,255,.45); }
   }
-
-  /* ── รอยต่อกลางจอ + โลโก้ ───────────────────── */
-  .seam{
-    height:74px; flex-shrink:0; position:relative;
-    background:linear-gradient(180deg,#04050700,#050609 22%,#050609 78%,#04050700);
-    background-color:#050609;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:0 18px; gap:14px;
-    border-top:1px solid var(--hair-soft); border-bottom:1px solid var(--hair-soft);
-  }
-  .brand{ display:flex; flex-direction:column; align-items:center; gap:9px; flex:1; min-width:0; }
-  .brandName{
-    font-family:var(--disp); font-weight:600; font-size:20px; line-height:1;
-    letter-spacing:.44em; text-indent:.44em; color:#EFE9DC; white-space:nowrap;
-  }
-  .brandName em{ font-style:normal; color:var(--ink-dim); }
-  .seamBar{
-    width:100%; max-width:190px; height:2px; border-radius:2px;
-    background:rgba(255,255,255,.10); position:relative; overflow:hidden;
-  }
-  .seamBar::after{
-    content:''; position:absolute; inset:0; border-radius:2px;
-    background:rgba(255,255,255,.28); transform:scaleX(0); transform-origin:center;
-  }
-  .seamBar.active::after{ animation:seamPulse 1.3s cubic-bezier(.4,0,.2,1) infinite; }
-  .seamBar.activeA::after{ background:linear-gradient(90deg,transparent,#E3C489,transparent); }
-  .seamBar.activeB::after{ background:linear-gradient(90deg,transparent,#9FC2DE,transparent); }
-  @keyframes seamPulse{ 0%,100%{transform:scaleX(.12); opacity:.6;} 50%{transform:scaleX(1); opacity:1;} }
-  .seam .ghostBtn{ --acc:#EFE9DC; width:36px; height:36px; font-size:14px; }
 
   /* ── โมดัล ──────────────────────────────────── */
   .modal{
@@ -227,70 +225,61 @@
 
   @media (max-height:640px){
     .micBtn{ width:72px; height:72px; }
-    .seam{ height:64px; }
-    .brandName{ font-size:17px; }
+    .brandName{ font-size:18px; }
+    .top{ padding-top:10px; }
   }
   @media (prefers-reduced-motion: reduce){
     .micBtn.listening{ animation:none; }
-    .seamBar.active::after{ animation:none; transform:scaleX(1); }
+    .msg{ animation:none; }
   }
 </style>
 </head>
 <body>
 
-  <div class="panel panelA" id="panelWrapA">
-    <div class="panelTop">
-      <div class="langSelectWrap"><select id="langA" aria-label="ภาษาฝั่งบน"></select></div>
-      <button class="ghostBtn textToggle" data-panel="A" aria-label="พิมพ์แทนการพูด">⌨</button>
-    </div>
-    <div class="stage">
-      <div class="translated" id="translatedA"></div>
-      <div class="original" id="originalA"></div>
-      <div class="status" id="statusA">แตะไมค์เพื่อพูด</div>
-    </div>
-    <form class="textForm" id="textFormA">
-      <input id="textInputA" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off">
-      <button type="submit">ส่ง</button>
-    </form>
-    <button class="micBtn" id="micA" aria-label="กดพูดฝั่งบน">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-3.06A9 9 0 0 0 21 11h-2z"/></svg>
-    </button>
-  </div>
-
-  <div class="seam">
-    <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
+  <div class="top">
     <div class="brand">
       <div class="brandName">PARLEY</div>
-      <div class="seamBar" id="seamBar"></div>
+      <div class="brandSub">ล่ามพกพา</div>
     </div>
-    <button class="ghostBtn" id="swapBtn" aria-label="สลับภาษา">⇄</button>
+    <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
   </div>
 
-  <div class="panel panelB" id="panelWrapB">
-    <div class="panelTop">
-      <div class="langSelectWrap"><select id="langB" aria-label="ภาษาฝั่งล่าง"></select></div>
-      <button class="ghostBtn textToggle" data-panel="B" aria-label="พิมพ์แทนการพูด">⌨</button>
+  <div class="langBar">
+    <div class="langPill slotA" id="pillLeft" data-slot="0">
+      <select id="langLeft" aria-label="ภาษาฝั่งที่ 1"></select>
     </div>
-    <div class="stage">
-      <div class="translated" id="translatedB"></div>
-      <div class="original" id="originalB"></div>
-      <div class="status" id="statusB">แตะไมค์เพื่อพูด</div>
+    <button class="ghostBtn" id="swapBtn" aria-label="สลับตำแหน่งภาษา">⇄</button>
+    <div class="langPill slotB" id="pillRight" data-slot="1">
+      <select id="langRight" aria-label="ภาษาฝั่งที่ 2"></select>
     </div>
-    <form class="textForm" id="textFormB">
-      <input id="textInputB" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off">
-      <button type="submit">ส่ง</button>
-    </form>
-    <button class="micBtn" id="micB" aria-label="กดพูดฝั่งล่าง">
+  </div>
+
+  <div class="chatLog" id="chatLog">
+    <div class="chatEmpty" id="chatEmpty">แตะไมค์แล้วพูดได้เลย พูดสลับกันไปมา ระบบจะแปลและอ่านออกเสียงให้ทันที</div>
+  </div>
+
+  <div class="statusLine" id="statusLine"></div>
+
+  <form class="textForm" id="textForm">
+    <input id="textInput" type="text" placeholder="พิมพ์ข้อความ…" autocomplete="off">
+    <button type="submit">ส่ง</button>
+  </form>
+
+  <div class="bottomBar">
+    <button class="ghostBtn" id="textToggleBtn" aria-label="พิมพ์แทนการพูด">⌨</button>
+    <button class="micBtn slotA" id="micBtn" aria-label="แตะเพื่อพูด">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0H3a9 9 0 0 0 8 8.94V23h2v-3.06A9 9 0 0 0 21 11h-2z"/></svg>
     </button>
+    <div class="spacer" aria-hidden="true"></div>
   </div>
 
   <div class="modal" id="infoModal">
     <div class="modalCard">
       <h3>PARLEY</h3>
       <div class="rule"></div>
-      <p>วางมือถือไว้ระหว่างคุณกับคู่สนทนา — ฝั่งบนจะ<b>กลับหัว</b>ให้อีกฝ่ายอ่านได้พอดี</p>
-      <p>แตะไมค์ฝั่งของตัวเองแล้วพูด ระบบจะแปลและอ่านออกเสียงให้อีกฝั่งทันที</p>
+      <p>แตะไมค์แล้วพูด ระบบจะฟัง แปล และอ่านออกเสียงคำแปลให้อีกฝ่ายฟังทันที</p>
+      <p>พูดสลับกันไปมาได้เลย แอปจะสลับภาษาที่คาดว่าจะฟังให้อัตโนมัติ — ถ้าเดาผิด แตะที่ชื่อภาษาด้านบนเพื่อสลับเอง</p>
+      <p>สำหรับคู่ภาษาที่ตัวอักษรต่างกันชัดเจน (เช่น ไทย/อังกฤษ) ระบบช่วยตรวจจับให้จากข้อความที่พูดได้เอง แต่คู่ภาษาที่ใช้ตัวอักษรเดียวกัน (เช่น อังกฤษ/สเปน) ต้องพึ่งการสลับกันพูดตามลำดับ หรือแตะสลับเองเมื่อเดาผิด</p>
       <p>ใช้ไมค์และลำโพงของเบราว์เซอร์ แปลผ่าน <b>MyMemory API</b> — ฟรี ไม่ต้องใช้คีย์</p>
       <p>รองรับดีที่สุดบน Chrome (Android) — บน iPhone/Safari ถ้าไมค์ไม่ทำงาน ให้กดปุ่ม ⌨ เพื่อพิมพ์แทน</p>
       <button id="closeModal">เข้าใจแล้ว</button>
@@ -344,28 +333,63 @@ const LANGS = [
 const CONTACT_EMAIL = '';
 
 const $ = (id) => document.getElementById(id);
-const state = { listening: null, recognition: null };
 
 function buildLangOptions(select, selectedIso){
   select.innerHTML = LANGS.map(l => `<option value="${l.iso}" ${l.iso===selectedIso?'selected':''}>${l.name}</option>`).join('');
 }
-buildLangOptions($('langA'), 'th');
-buildLangOptions($('langB'), 'en');
+buildLangOptions($('langLeft'), 'th');
+buildLangOptions($('langRight'), 'en');
 
-function getLang(panel){
-  const iso = $('lang'+panel).value;
-  return LANGS.find(l => l.iso === iso) || LANGS[0];
+/* ── สถานะการสนทนา ──────────────────────────────
+   state.langs[0]/[1] คือสองภาษาที่ตั้งไว้บนหน้าจอ (ฝั่งซ้าย/ขวา)
+   state.turn (0 หรือ 1) คือ "คาดว่าใครจะพูดต่อ" สลับกันอัตโนมัติทุกครั้ง
+   ที่แปลสำเร็จ ไม่ต้องเลือกว่าใครพูดก่อน แค่แตะไมค์แล้วพูดสลับกันไปได้เลย  */
+const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, recognition: null };
+
+function onLangChange(){
+  state.langs = [
+    LANGS.find(l => l.iso === $('langLeft').value) || LANGS[0],
+    LANGS.find(l => l.iso === $('langRight').value) || LANGS[1],
+  ];
+  updateTurnUI();
+}
+$('langLeft').addEventListener('change', onLangChange);
+$('langRight').addEventListener('change', onLangChange);
+
+$('swapBtn').addEventListener('click', () => {
+  const l = $('langLeft').value, r = $('langRight').value;
+  buildLangOptions($('langLeft'), r);
+  buildLangOptions($('langRight'), l);
+  onLangChange();
+});
+
+[$('pillLeft'), $('pillRight')].forEach(pill => {
+  pill.addEventListener('click', (e) => {
+    if(e.target.tagName === 'SELECT') return; // ปล่อยให้ select เปิด dropdown ของตัวเอง
+    setTurn(Number(pill.dataset.slot));
+  });
+});
+
+function setTurn(idx){
+  state.turn = idx === 1 ? 1 : 0;
+  updateTurnUI();
+}
+function updateTurnUI(){
+  const lang = state.langs[state.turn];
+  $('pillLeft').classList.toggle('current', state.turn === 0);
+  $('pillRight').classList.toggle('current', state.turn === 1);
+  $('micBtn').classList.toggle('slotA', state.turn === 0);
+  $('micBtn').classList.toggle('slotB', state.turn === 1);
+  $('micBtn').setAttribute('aria-label', 'แตะเพื่อพูดภาษา' + lang.name);
+  if(!state.listening) setStatusLine('แตะไมค์เพื่อพูด: ' + lang.name);
 }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speechSupported = !!SR;
 if(!speechSupported){
-  $('micA').style.display = 'none';
-  $('micB').style.display = 'none';
-  $('textFormA').classList.add('open');
-  $('textFormB').classList.add('open');
-  $('statusA').textContent = 'พิมพ์ข้อความด้านล่าง';
-  $('statusB').textContent = 'พิมพ์ข้อความด้านล่าง';
+  $('micBtn').style.display = 'none';
+  $('textForm').classList.add('open');
+  $('textToggleBtn').classList.add('on');
 }
 
 let voicesCache = [];
@@ -391,16 +415,67 @@ function speak(text, speechLangCode){
   }catch(e){}
 }
 
-function setSeam(activePanel){
-  const bar = $('seamBar');
-  bar.className = 'seamBar' + (activePanel ? ' active active' + activePanel : '');
-}
-function setStatus(panel, text, isError){
-  const el = $('status'+panel);
+function setStatusLine(text, isError){
+  const el = $('statusLine');
   el.textContent = text;
   el.classList.toggle('err', !!isError);
 }
-function setMicState(panel, on){ $('mic'+panel).classList.toggle('listening', on); }
+
+function addMessage(original, translated, toLang){
+  $('chatEmpty').style.display = 'none';
+  const side = toLang === state.langs[0] ? 'left' : 'right';
+  const bubble = document.createElement('div');
+  bubble.className = 'msg msg-' + side;
+  const t = document.createElement('div'); t.className = 'msgText'; t.textContent = translated;
+  const o = document.createElement('div'); o.className = 'msgOrig'; o.textContent = original;
+  bubble.append(t, o);
+  $('chatLog').appendChild(bubble);
+  $('chatLog').scrollTop = $('chatLog').scrollHeight;
+}
+
+/* ── ตรวจภาษาที่พูดจากตัวอักษร (ไม่ใช่จากเสียง) ─────────
+   Web Speech API ของเบราว์เซอร์ไม่รองรับ "auto-detect" ภาษาพูด — ต้องบอกภาษา
+   ก่อนเริ่มฟังเสมอ จึงใช้การสลับเทิร์นอัตโนมัติเป็นตัวเดาหลัก แล้วเสริมด้วยการ
+   ตรวจตัวอักษรของข้อความที่ถอดเสียงได้ ถ้าคู่ภาษาที่ตั้งไว้ใช้ตัวอักษรคนละชุด
+   (เช่น ไทย/อังกฤษ, จีน/อังกฤษ) จะจับได้แม่นเกือบสมบูรณ์ — แต่ถ้าใช้ตัวอักษร
+   ชุดเดียวกัน (เช่น อังกฤษ/สเปน) จะแยกไม่ออก ต้องพึ่งการสลับเทิร์นหรือแตะสลับเอง */
+const SCRIPT_RANGES = [
+  ['thai', /[฀-๿]/g],
+  ['lao', /[຀-໿]/g],
+  ['khmer', /[ក-៿]/g],
+  ['myanmar', /[က-႟]/g],
+  ['hangul', /[가-힣ᄀ-ᇿ]/g],
+  ['han', /[一-鿿]/g],
+  ['arabic', /[؀-ۿ]/g],
+  ['hebrew', /[֐-׿]/g],
+  ['devanagari', /[ऀ-ॿ]/g],
+  ['bengali', /[ঀ-৿]/g],
+  ['cyrillic', /[Ѐ-ӿ]/g],
+  ['greek', /[Ͱ-Ͽ]/g],
+  ['latin', /[A-Za-zÀ-ÖØ-öø-ÿĀ-ɏ]/g],
+];
+const SCRIPT_ISOS = {
+  thai:['th'], lao:['lo'], khmer:['km'], myanmar:['my'], hangul:['ko'], kana:['ja'], han:['zh'],
+  arabic:['ar','fa','ur'], hebrew:['he'], devanagari:['hi'], bengali:['bn'], cyrillic:['ru','uk'], greek:['el'],
+  latin:['en','vi','id','ms','tl','es','fr','de','it','pt','nl','tr','pl','sv','cs','ro','hu','fi','da','no'],
+};
+
+function detectScriptIso(text, candidateA, candidateB){
+  let scriptName = /[぀-ヿ]/.test(text) ? 'kana' : null; // คานะ = ญี่ปุ่นแน่นอน เช็คก่อนเพราะปนกับคันจิจีนได้
+  if(!scriptName){
+    let bestCount = 0;
+    for(const [name, re] of SCRIPT_RANGES){
+      const count = (text.match(re) || []).length;
+      if(count > bestCount){ bestCount = count; scriptName = name; }
+    }
+    if(bestCount < 2) return null;
+  }
+  const isos = SCRIPT_ISOS[scriptName] || [];
+  const hasA = isos.includes(candidateA), hasB = isos.includes(candidateB);
+  if(hasA && !hasB) return candidateA;
+  if(hasB && !hasA) return candidateB;
+  return null;
+}
 
 /* ── การแปล ─────────────────────────────────────
    MyMemory ตอบ HTTP 200 เสมอ แม้ตอนโควตาหมดหรือคู่ภาษาไม่รองรับ
@@ -473,86 +548,74 @@ async function translateText(text, fromIso, toIso){
   return decodeEntities(out);
 }
 
-async function handleTranscript(panel, text){
-  if(!text || !text.trim()) return;
-  const other = panel === 'A' ? 'B' : 'A';
-  const fromLang = getLang(panel);
-  const toLang = getLang(other);
-  $('original'+panel).textContent = text;
-  setStatus(panel, 'กำลังแปล…');
-  setStatus(other, 'กำลังแปล…');
+async function handleUtterance(rawText){
+  const text = (rawText || '').trim();
+  if(!text) return;
+
+  const langA = state.langs[0], langB = state.langs[1];
+  let fromLang = state.langs[state.turn];
+  let toLang = state.langs[1 - state.turn];
+
+  // ถ้าตัวอักษรในข้อความฟ้องชัดว่าเป็นอีกภาษาหนึ่ง ให้เชื่อข้อความมากกว่าเทิร์นที่เดาไว้
+  const detected = detectScriptIso(text, langA.iso, langB.iso);
+  if(detected && detected !== fromLang.iso){
+    fromLang = detected === langA.iso ? langA : langB;
+    toLang = fromLang === langA ? langB : langA;
+  }
+
+  setStatusLine('กำลังแปล…');
   try{
     const translated = await translateText(text, fromLang.iso, toLang.iso);
-    $('translated'+other).textContent = translated;
-    setStatus(panel, 'ส่งแล้ว');
-    setStatus(other, 'กำลังพูด…');
+    addMessage(text, translated, toLang);
     speak(translated, toLang.speech);
-    setTimeout(() => { setStatus(panel, ''); setStatus(other, ''); }, 2500);
+    setTurn(toLang === langA ? 0 : 1); // เทิร์นถัดไปคือฝั่งที่เพิ่งฟังคำแปล
   }catch(err){
-    const msg = (err && err.userMessage) || 'แปลไม่สำเร็จ ลองใหม่อีกครั้ง';
-    // โควตาหมดกระทบทั้งสองฝั่ง จึงแจ้งให้เห็นทั้งคู่
-    const bothSides = msg.startsWith('โควตา');
-    setStatus(panel, msg, true);
-    setStatus(other, bothSides ? msg : '', bothSides);
+    setStatusLine((err && err.userMessage) || 'แปลไม่สำเร็จ ลองใหม่อีกครั้ง', true);
   }
 }
 
 function stopListening(){
   if(state.recognition){ try{ state.recognition.stop(); }catch(e){} }
-  state.listening = null;
-  setMicState('A', false); setMicState('B', false);
-  setSeam(null);
+  state.listening = false;
+  $('micBtn').classList.remove('listening');
 }
 
-function startListening(panel){
+function startListening(){
   if(!speechSupported) return;
-  if(state.listening === panel){ stopListening(); return; }
-  stopListening();
-  const lang = getLang(panel);
+  if(state.listening){ stopListening(); return; }
+  const lang = state.langs[state.turn];
   const rec = new SR();
   rec.lang = lang.speech;
   rec.interimResults = false;
   rec.maxAlternatives = 1;
   rec.continuous = false;
-  rec.onstart = () => { state.listening = panel; setMicState(panel, true); setSeam(panel); setStatus(panel, 'กำลังฟัง…'); };
-  rec.onresult = (e) => { const t = e.results[0][0].transcript; handleTranscript(panel, t); };
+  rec.onstart = () => { state.listening = true; $('micBtn').classList.add('listening'); setStatusLine('กำลังฟัง: ' + lang.name + '…'); };
+  rec.onresult = (e) => { handleUtterance(e.results[0][0].transcript); };
   rec.onerror = (e) => {
-    setStatus(panel, e.error === 'not-allowed' ? 'กรุณาอนุญาตให้ใช้ไมโครโฟน' : 'ไม่ได้ยินเสียง ลองใหม่');
+    setStatusLine(e.error === 'not-allowed' ? 'กรุณาอนุญาตให้ใช้ไมโครโฟน' : 'ไม่ได้ยินเสียง ลองใหม่', true);
   };
-  rec.onend = () => { setMicState(panel, false); setSeam(null); state.listening = null; };
+  rec.onend = () => { state.listening = false; $('micBtn').classList.remove('listening'); };
   state.recognition = rec;
-  try{ rec.start(); }catch(e){ setStatus(panel, 'ไมโครโฟนไม่พร้อมใช้งาน'); }
+  try{ rec.start(); }catch(e){ setStatusLine('ไมโครโฟนไม่พร้อมใช้งาน', true); }
 }
+$('micBtn').addEventListener('click', startListening);
 
-$('micA').addEventListener('click', () => startListening('A'));
-$('micB').addEventListener('click', () => startListening('B'));
-
-['A','B'].forEach(panel => {
-  $('textForm'+panel).addEventListener('submit', (e) => {
-    e.preventDefault();
-    const input = $('textInput'+panel);
-    const v = input.value;
-    input.value = '';
-    handleTranscript(panel, v);
-  });
+$('textForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const v = $('textInput').value;
+  $('textInput').value = '';
+  handleUtterance(v);
 });
-
-document.querySelectorAll('.textToggle').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const open = $('textForm'+btn.dataset.panel).classList.toggle('open');
-    btn.classList.toggle('on', open);
-  });
-});
-
-$('swapBtn').addEventListener('click', () => {
-  const a = $('langA').value, b = $('langB').value;
-  buildLangOptions($('langA'), b);
-  buildLangOptions($('langB'), a);
+$('textToggleBtn').addEventListener('click', () => {
+  const open = $('textForm').classList.toggle('open');
+  $('textToggleBtn').classList.toggle('on', open);
 });
 
 $('infoBtn').addEventListener('click', () => $('infoModal').classList.add('open'));
 $('closeModal').addEventListener('click', () => $('infoModal').classList.remove('open'));
 $('infoModal').addEventListener('click', (e) => { if(e.target.id === 'infoModal') $('infoModal').classList.remove('open'); });
+
+updateTurnUI();
 </script>
 </body>
 </html>
