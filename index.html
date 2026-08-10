@@ -110,6 +110,12 @@
   .status{
     font-family:var(--mono); font-size:.63rem; text-transform:uppercase;
     letter-spacing:.22em; min-height:1.2em; color:var(--acc); opacity:.75;
+    text-align:center; max-width:92%;
+  }
+  /* ข้อความแจ้งปัญหา — ยาวกว่าและต้องอ่านง่าย จึงถอดสไตล์ตัวพิมพ์เล็กหนาแน่นออก */
+  .status.err{
+    font-family:var(--body); font-size:.82rem; text-transform:none;
+    letter-spacing:0; line-height:1.5; color:#E8A9A0; opacity:1;
   }
 
   /* ── ช่องพิมพ์ ──────────────────────────────── */
@@ -331,6 +337,12 @@ const LANGS = [
   {name:"ยูเครน", iso:"uk", speech:"uk-UA"},
 ];
 
+/* ใส่อีเมลตรงนี้เพื่อเพิ่มโควตา MyMemory จาก 5,000 → 50,000 ตัวอักษร/วัน
+   เช่น const CONTACT_EMAIL = 'you@example.com';
+   ระวัง: ไฟล์นี้อยู่ใน repo สาธารณะ อีเมลที่ใส่จะถูกมองเห็นและอาจโดนบอทเก็บไปสแปม
+   แนะนำให้ใช้อีเมลสำรอง ไม่ใช่อีเมลหลัก                                    */
+const CONTACT_EMAIL = '';
+
 const $ = (id) => document.getElementById(id);
 const state = { listening: null, recognition: null };
 
@@ -383,18 +395,82 @@ function setSeam(activePanel){
   const bar = $('seamBar');
   bar.className = 'seamBar' + (activePanel ? ' active active' + activePanel : '');
 }
-function setStatus(panel, text){ $('status'+panel).textContent = text; }
+function setStatus(panel, text, isError){
+  const el = $('status'+panel);
+  el.textContent = text;
+  el.classList.toggle('err', !!isError);
+}
 function setMicState(panel, on){ $('mic'+panel).classList.toggle('listening', on); }
 
-async function translateText(text, fromIso, toIso){
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromIso}|${toIso}`;
-  const res = await fetch(url);
-  if(!res.ok) throw new Error('network');
-  const data = await res.json();
-  if(!data || !data.responseData || typeof data.responseData.translatedText !== 'string'){
-    throw new Error('bad-response');
+/* ── การแปล ─────────────────────────────────────
+   MyMemory ตอบ HTTP 200 เสมอ แม้ตอนโควตาหมดหรือคู่ภาษาไม่รองรับ
+   คำเตือนจะซ่อนอยู่ในเนื้อ JSON แทน จึงต้องตรวจเองทุกชั้น
+   ไม่งั้นข้อความเตือนภาษาอังกฤษยาวๆ จะไปโผล่บนจอแทนคำแปล      */
+
+const MAX_QUERY_CHARS = 500;
+
+class TranslateError extends Error{
+  constructor(userMessage){ super(userMessage); this.userMessage = userMessage; }
+}
+
+// MyMemory ส่ง HTML entity มาบ้าง เช่น &#39; &quot;
+function decodeEntities(s){
+  if(!s.includes('&')) return s;
+  const el = document.createElement('textarea');
+  el.innerHTML = s;   // textarea เป็น RCDATA — ไม่รันสคริปต์
+  return el.value;
+}
+
+// แปลงคำเตือนของ API เป็นข้อความไทย คืน null ถ้าไม่ใช่คำเตือน
+function describeWarning(raw){
+  if(typeof raw !== 'string' || !raw) return null;
+  const s = raw.toUpperCase();
+  if(s.includes('USED ALL AVAILABLE FREE TRANSLATIONS')){
+    const m = raw.match(/NEXT AVAILABLE IN\s+(\d+)\s*HOURS?\s+(\d+)\s*MINUTES?/i);
+    return m ? `โควตาวันนี้หมดแล้ว ใช้ได้อีกใน ${+m[1]} ชม. ${+m[2]} นาที`
+             : 'โควตาวันนี้หมดแล้ว ลองใหม่พรุ่งนี้';
   }
-  return data.responseData.translatedText;
+  if(s.includes('INVALID LANGUAGE PAIR') || s.includes('INVALID SOURCE LANGUAGE') || s.includes('INVALID TARGET LANGUAGE')){
+    return 'คู่ภาษานี้ยังไม่รองรับ ลองเปลี่ยนภาษา';
+  }
+  if(s.includes('QUERY LENGTH LIMIT')) return `ข้อความยาวเกินไป (สูงสุด ${MAX_QUERY_CHARS} ตัวอักษร)`;
+  if(s.includes('MYMEMORY WARNING') || s.includes('MYMEMORY ERROR')) return 'แปลไม่สำเร็จ ลองใหม่อีกครั้ง';
+  return null;
+}
+
+async function translateText(text, fromIso, toIso){
+  if(fromIso === toIso) return text;
+  if(text.length > MAX_QUERY_CHARS) throw new TranslateError(`ข้อความยาวเกินไป (สูงสุด ${MAX_QUERY_CHARS} ตัวอักษร)`);
+
+  let url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(fromIso+'|'+toIso)}`;
+  if(CONTACT_EMAIL) url += `&de=${encodeURIComponent(CONTACT_EMAIL)}`;
+
+  let res;
+  try{ res = await fetch(url); }
+  catch(e){ throw new TranslateError('เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ต'); }
+
+  if(res.status === 429) throw new TranslateError('โควตาวันนี้หมดแล้ว ลองใหม่พรุ่งนี้');
+  if(!res.ok) throw new TranslateError('เซิร์ฟเวอร์แปลไม่ตอบสนอง ลองใหม่');
+
+  let data;
+  try{ data = await res.json(); }
+  catch(e){ throw new TranslateError('แปลไม่สำเร็จ ลองใหม่อีกครั้ง'); }
+
+  const detail = describeWarning(data && data.responseDetails);
+  if(data && data.quotaFinished) throw new TranslateError(detail || 'โควตาวันนี้หมดแล้ว ลองใหม่พรุ่งนี้');
+  if(detail) throw new TranslateError(detail);
+
+  const out = data && data.responseData && data.responseData.translatedText;
+  if(typeof out !== 'string' || !out.trim()) throw new TranslateError('แปลไม่สำเร็จ ลองใหม่อีกครั้ง');
+
+  // บางครั้งคำเตือนมาโผล่ในช่อง translatedText แทน responseDetails
+  const inline = describeWarning(out);
+  if(inline) throw new TranslateError(inline);
+
+  const status = Number(data.responseStatus);
+  if(status && status !== 200) throw new TranslateError('แปลไม่สำเร็จ ลองใหม่อีกครั้ง');
+
+  return decodeEntities(out);
 }
 
 async function handleTranscript(panel, text){
@@ -413,8 +489,11 @@ async function handleTranscript(panel, text){
     speak(translated, toLang.speech);
     setTimeout(() => { setStatus(panel, ''); setStatus(other, ''); }, 2500);
   }catch(err){
-    setStatus(panel, 'แปลไม่สำเร็จ ลองแตะไมค์อีกครั้ง');
-    setStatus(other, '');
+    const msg = (err && err.userMessage) || 'แปลไม่สำเร็จ ลองใหม่อีกครั้ง';
+    // โควตาหมดกระทบทั้งสองฝั่ง จึงแจ้งให้เห็นทั้งคู่
+    const bothSides = msg.startsWith('โควตา');
+    setStatus(panel, msg, true);
+    setStatus(other, bothSides ? msg : '', bothSides);
   }
 }
 
