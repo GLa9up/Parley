@@ -56,14 +56,16 @@
   .top{ display:flex; align-items:center; gap:12px; padding:16px 18px 10px; flex-shrink:0; }
   .brand{ display:flex; flex-direction:column; }
   .brandName{
-    font-family:var(--disp); font-weight:600; font-size:21px; line-height:1;
+    font-family:var(--disp); font-weight:600; font-size:23px; line-height:1;
     letter-spacing:.32em; text-indent:.32em; color:#EFE9DC;
   }
   .brandSub{
-    font-family:var(--body); font-weight:500; font-size:10.5px;
+    font-family:var(--body); font-weight:500; font-size:11.5px;
     letter-spacing:.14em; color:var(--ink-dim); margin-top:6px;
   }
-  .top .ghostBtn{ margin-left:auto; --acc:#EFE9DC; }
+  .top{ position:relative; }
+  .top .ghostBtn{ --acc:#EFE9DC; }
+  .top .ghostBtn:first-of-type{ margin-left:auto; }
 
   .ghostBtn{
     width:38px; height:38px; border-radius:999px; flex-shrink:0;
@@ -91,7 +93,7 @@
     width:100%; appearance:none; -webkit-appearance:none;
     background:transparent; border:none;
     padding:9px 30px 9px 15px; color:var(--ink-dim);
-    font-family:var(--mono); font-size:11.5px; font-weight:500;
+    font-family:var(--mono); font-size:12.5px; font-weight:500;
     letter-spacing:.1em; text-transform:uppercase; text-align:center;
     background-image:
       linear-gradient(45deg,transparent 50%,currentColor 50%),
@@ -111,11 +113,11 @@
   }
   .chatEmpty{
     margin:auto; color:var(--ink-dim); opacity:.5;
-    font-size:13.5px; text-align:center; padding:20px; max-width:220px; line-height:1.6;
+    font-size:14.5px; text-align:center; padding:20px; max-width:220px; line-height:1.6;
   }
-  .msg{ max-width:84%; padding:11px 15px; border-radius:18px; animation:msgIn .28s cubic-bezier(.4,0,.2,1); }
-  .msg .msgText{ font-size:1.05rem; font-weight:500; line-height:1.46; text-wrap:balance; }
-  .msg .msgOrig{ font-family:var(--mono); font-size:.66rem; letter-spacing:.01em; opacity:.5; margin-top:5px; line-height:1.4; }
+  .msg{ max-width:84%; padding:12px 16px; border-radius:18px; animation:msgIn .28s cubic-bezier(.4,0,.2,1); }
+  .msg .msgText{ font-size:clamp(1.15rem, 4.4vw, 1.35rem); font-weight:500; line-height:1.46; text-wrap:balance; }
+  .msg .msgOrig{ font-family:var(--mono); font-size:.76rem; letter-spacing:.01em; opacity:.5; margin-top:6px; line-height:1.4; }
   .msg-left{
     align-self:flex-start;
     background:linear-gradient(160deg, rgba(227,196,137,.14), rgba(227,196,137,.045));
@@ -130,12 +132,12 @@
 
   /* ── สถานะ ──────────────────────────────────── */
   .statusLine{
-    font-family:var(--mono); font-size:.63rem; text-transform:uppercase;
+    font-family:var(--mono); font-size:.7rem; text-transform:uppercase;
     letter-spacing:.18em; min-height:1.4em; color:var(--ink-dim);
     text-align:center; padding:2px 24px; flex-shrink:0;
   }
   .statusLine.err{
-    font-family:var(--body); font-size:.82rem; text-transform:none;
+    font-family:var(--body); font-size:.92rem; text-transform:none;
     letter-spacing:0; line-height:1.5; color:#E8A9A0;
   }
 
@@ -149,13 +151,13 @@
   .textForm input{
     flex:1; min-width:0; border-radius:999px;
     border:1px solid var(--hair); background:rgba(255,255,255,.05);
-    padding:12px 18px; font-size:15px;
+    padding:12px 18px; font-size:16px;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
   }
   .textForm input::placeholder{ color:rgba(236,234,228,.32); }
   .textForm button{
     border-radius:999px; border:none; padding:0 22px;
-    font-weight:600; font-size:13.5px; letter-spacing:.04em; cursor:pointer;
+    font-weight:600; font-size:14.5px; letter-spacing:.04em; cursor:pointer;
     background:linear-gradient(160deg,#EFE3CB,#CBB284); color:#1E1607;
   }
 
@@ -241,6 +243,7 @@
       <div class="brandName">PARLEY</div>
       <div class="brandSub">ล่ามพกพา</div>
     </div>
+    <button class="ghostBtn" id="resetBtn" aria-label="ล้างบทสนทนา">↺</button>
     <button class="ghostBtn" id="infoBtn" aria-label="วิธีใช้">ⓘ</button>
   </div>
 
@@ -277,9 +280,8 @@
     <div class="modalCard">
       <h3>PARLEY</h3>
       <div class="rule"></div>
-      <p>แตะไมค์แล้วพูด ระบบจะฟัง แปล และอ่านออกเสียงคำแปลให้อีกฝ่ายฟังทันที</p>
-      <p>พูดสลับกันไปมาได้เลย แอปจะสลับภาษาที่คาดว่าจะฟังให้อัตโนมัติ — ถ้าเดาผิด แตะที่ชื่อภาษาด้านบนเพื่อสลับเอง</p>
-      <p>สำหรับคู่ภาษาที่ตัวอักษรต่างกันชัดเจน (เช่น ไทย/อังกฤษ) ระบบช่วยตรวจจับให้จากข้อความที่พูดได้เอง แต่คู่ภาษาที่ใช้ตัวอักษรเดียวกัน (เช่น อังกฤษ/สเปน) ต้องพึ่งการสลับกันพูดตามลำดับ หรือแตะสลับเองเมื่อเดาผิด</p>
+      <p>แตะไมค์แล้วพูดได้เลย ไม่ต้องสนใจว่าใครพูดก่อน — ระบบฟังสองภาษาที่ตั้งไว้พร้อมกันทุกครั้ง แล้วเลือกภาษาที่ตรงกับสิ่งที่พูดจริงให้เอง</p>
+      <p>ใช้ได้แม่นเมื่อสองภาษาที่ตั้งไว้ใช้ตัวอักษรต่างชุดกันชัดเจน (เช่น ไทย/อังกฤษ, จีน/อังกฤษ) — ถ้าใช้ตัวอักษรชุดเดียวกัน (เช่น อังกฤษ/สเปน) แยกไม่ออก ต้องพูดสลับกันตามลำดับ หรือแตะชื่อภาษาด้านบนเพื่อสลับเทิร์นเอง</p>
       <p>ใช้ไมค์และลำโพงของเบราว์เซอร์ แปลผ่าน <b>MyMemory API</b> — ฟรี ไม่ต้องใช้คีย์</p>
       <p>รองรับดีที่สุดบน Chrome (Android) — บน iPhone/Safari ถ้าไมค์ไม่ทำงาน ให้กดปุ่ม ⌨ เพื่อพิมพ์แทน</p>
       <button id="closeModal">เข้าใจแล้ว</button>
@@ -330,7 +332,7 @@ const LANGS = [
    เช่น const CONTACT_EMAIL = 'you@example.com';
    ระวัง: ไฟล์นี้อยู่ใน repo สาธารณะ อีเมลที่ใส่จะถูกมองเห็นและอาจโดนบอทเก็บไปสแปม
    แนะนำให้ใช้อีเมลสำรอง ไม่ใช่อีเมลหลัก                                    */
-const CONTACT_EMAIL = '';
+const CONTACT_EMAIL = 'glagitproject@gmail.com';
 
 const $ = (id) => document.getElementById(id);
 
@@ -344,7 +346,7 @@ buildLangOptions($('langRight'), 'en');
    state.langs[0]/[1] คือสองภาษาที่ตั้งไว้บนหน้าจอ (ฝั่งซ้าย/ขวา)
    state.turn (0 หรือ 1) คือ "คาดว่าใครจะพูดต่อ" สลับกันอัตโนมัติทุกครั้ง
    ที่แปลสำเร็จ ไม่ต้องเลือกว่าใครพูดก่อน แค่แตะไมค์แล้วพูดสลับกันไปได้เลย  */
-const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, recognition: null };
+const state = { langs: [LANGS.find(l=>l.iso==='th'), LANGS.find(l=>l.iso==='en')], turn: 0, listening: false, activeAttempts: null };
 
 function onLangChange(){
   state.langs = [
@@ -380,8 +382,8 @@ function updateTurnUI(){
   $('pillRight').classList.toggle('current', state.turn === 1);
   $('micBtn').classList.toggle('slotA', state.turn === 0);
   $('micBtn').classList.toggle('slotB', state.turn === 1);
-  $('micBtn').setAttribute('aria-label', 'แตะเพื่อพูดภาษา' + lang.name);
-  if(!state.listening) setStatusLine('แตะไมค์เพื่อพูด: ' + lang.name);
+  $('micBtn').setAttribute('aria-label', 'แตะเพื่อพูด');
+  if(!state.listening) setStatusLine('คาดว่าเทิร์นนี้: ' + lang.name);
 }
 
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -548,20 +550,13 @@ async function translateText(text, fromIso, toIso){
   return decodeEntities(out);
 }
 
-async function handleUtterance(rawText){
+async function handleUtterance(rawText, fromIdx){
   const text = (rawText || '').trim();
   if(!text) return;
 
   const langA = state.langs[0], langB = state.langs[1];
-  let fromLang = state.langs[state.turn];
-  let toLang = state.langs[1 - state.turn];
-
-  // ถ้าตัวอักษรในข้อความฟ้องชัดว่าเป็นอีกภาษาหนึ่ง ให้เชื่อข้อความมากกว่าเทิร์นที่เดาไว้
-  const detected = detectScriptIso(text, langA.iso, langB.iso);
-  if(detected && detected !== fromLang.iso){
-    fromLang = detected === langA.iso ? langA : langB;
-    toLang = fromLang === langA ? langB : langA;
-  }
+  const fromLang = fromIdx === 1 ? langB : langA;
+  const toLang = fromIdx === 1 ? langA : langB;
 
   setStatusLine('กำลังแปล…');
   try{
@@ -574,29 +569,85 @@ async function handleUtterance(rawText){
   }
 }
 
-function stopListening(){
-  if(state.recognition){ try{ state.recognition.stop(); }catch(e){} }
-  state.listening = false;
-  $('micBtn').classList.remove('listening');
-}
+/* ── ฟังสองภาษาพร้อมกัน เพื่อเดาภาษาที่พูดจริงจากเสียง ─────────
+   Web Speech API ต้องบอกภาษาก่อนเริ่มฟังเสมอ ไม่มี auto-detect ในตัว
+   ถ้าเดาภาษาผิดไว้ก่อน เอนจินจะบังคับถอดเสียงด้วยสัทศาสตร์ของภาษานั้น
+   ผลที่ได้จึงอาจเพี้ยนจนตรวจตัวอักษรทีหลังไม่ได้ผล — ทางแก้คือให้เอนจิน
+   สองตัวฟังเสียงเดียวกันพร้อมกัน คนละภาษา แล้วเลือกฝั่งที่ถอดเสียงออกมา
+   แล้ว "ตัวอักษรตรงกับภาษาที่ตั้งไว้เอง" เป็นคนชนะ ใช้ได้ผลดีเมื่อสอง
+   ภาษาที่ตั้งไว้ใช้ตัวอักษรคนละชุด (เช่น ไทย/อังกฤษ) — ถ้าใช้ตัวอักษร
+   ชุดเดียวกัน (เช่น อังกฤษ/สเปน) ยังแยกไม่ออก ต้องพึ่งเทิร์นหรือแตะสลับเอง */
 
-function startListening(){
-  if(!speechSupported) return;
-  if(state.listening){ stopListening(); return; }
-  const lang = state.langs[state.turn];
+function recognizeAttempt(lang){
   const rec = new SR();
   rec.lang = lang.speech;
   rec.interimResults = false;
   rec.maxAlternatives = 1;
   rec.continuous = false;
-  rec.onstart = () => { state.listening = true; $('micBtn').classList.add('listening'); setStatusLine('กำลังฟัง: ' + lang.name + '…'); };
-  rec.onresult = (e) => { handleUtterance(e.results[0][0].transcript); };
-  rec.onerror = (e) => {
-    setStatusLine(e.error === 'not-allowed' ? 'กรุณาอนุญาตให้ใช้ไมโครโฟน' : 'ไม่ได้ยินเสียง ลองใหม่', true);
-  };
-  rec.onend = () => { state.listening = false; $('micBtn').classList.remove('listening'); };
-  state.recognition = rec;
-  try{ rec.start(); }catch(e){ setStatusLine('ไมโครโฟนไม่พร้อมใช้งาน', true); }
+  const att = { rec, cancelled: false, errorType: null, finish: null, promise: null };
+  att.promise = new Promise((resolve) => {
+    let done = false;
+    att.finish = (text) => { if(done) return; done = true; resolve(text); };
+  });
+  rec.onresult = (e) => att.finish((e.results[0][0].transcript || '').trim());
+  rec.onerror = (e) => { att.errorType = e.error; att.finish(''); };
+  rec.onend = () => att.finish('');
+  setTimeout(() => att.finish(''), 12000); // กันเอนจินค้างไม่ยอมจบ
+  return att;
+}
+
+function resolveDualResult(textA, langA, textB, langB){
+  const okA = !!textA, okB = !!textB;
+  if(!okA && !okB) return null;
+  if(okA && !okB) return { text: textA, fromIdx: 0 };
+  if(okB && !okA) return { text: textB, fromIdx: 1 };
+
+  // ทั้งสองฝั่งถอดเสียงออกมาได้ — เชื่อฝั่งที่ตัวอักษรตรงกับภาษาที่ตั้งไว้เอง
+  const aSelfConsistent = detectScriptIso(textA, langA.iso, langB.iso) === langA.iso;
+  const bSelfConsistent = detectScriptIso(textB, langA.iso, langB.iso) === langB.iso;
+  if(aSelfConsistent && !bSelfConsistent) return { text: textA, fromIdx: 0 };
+  if(bSelfConsistent && !aSelfConsistent) return { text: textB, fromIdx: 1 };
+
+  // เดาไม่ออก (เช่นคู่ภาษาตัวอักษรชุดเดียวกัน) — ใช้เทิร์นที่คาดไว้เป็นตัวตัดสิน
+  return state.turn === 1 ? { text: textB, fromIdx: 1 } : { text: textA, fromIdx: 0 };
+}
+
+function stopListening(){
+  if(state.activeAttempts){
+    state.activeAttempts.forEach(att => { att.cancelled = true; try{ att.rec.abort(); }catch(e){} });
+  }
+  state.listening = false;
+  $('micBtn').classList.remove('listening');
+}
+
+async function startListening(){
+  if(!speechSupported) return;
+  if(state.listening){ stopListening(); return; }
+
+  const langA = state.langs[0], langB = state.langs[1];
+  state.listening = true;
+  $('micBtn').classList.add('listening');
+  setStatusLine('กำลังฟัง…');
+
+  const attA = recognizeAttempt(langA);
+  const attB = recognizeAttempt(langB);
+  state.activeAttempts = [attA, attB];
+  try{ attA.rec.start(); }catch(e){ attA.finish(''); }
+  try{ attB.rec.start(); }catch(e){ attB.finish(''); }
+
+  const [textA, textB] = await Promise.all([attA.promise, attB.promise]);
+  const cancelled = attA.cancelled || attB.cancelled;
+  state.activeAttempts = null;
+  state.listening = false;
+  $('micBtn').classList.remove('listening');
+  if(cancelled){ updateTurnUI(); return; }
+
+  const notAllowed = attA.errorType === 'not-allowed' || attB.errorType === 'not-allowed';
+  if(notAllowed){ setStatusLine('กรุณาอนุญาตให้ใช้ไมโครโฟน', true); return; }
+
+  const winner = resolveDualResult(textA, langA, textB, langB);
+  if(!winner){ setStatusLine('ไม่ได้ยินเสียง ลองใหม่', true); return; }
+  handleUtterance(winner.text, winner.fromIdx);
 }
 $('micBtn').addEventListener('click', startListening);
 
@@ -604,11 +655,24 @@ $('textForm').addEventListener('submit', (e) => {
   e.preventDefault();
   const v = $('textInput').value;
   $('textInput').value = '';
-  handleUtterance(v);
+  const text = (v || '').trim();
+  if(!text) return;
+  const langA = state.langs[0], langB = state.langs[1];
+  const detected = detectScriptIso(text, langA.iso, langB.iso);
+  const fromIdx = detected ? (detected === langA.iso ? 0 : 1) : state.turn;
+  handleUtterance(text, fromIdx);
 });
 $('textToggleBtn').addEventListener('click', () => {
   const open = $('textForm').classList.toggle('open');
   $('textToggleBtn').classList.toggle('on', open);
+});
+
+$('resetBtn').addEventListener('click', () => {
+  stopListening();
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  $('chatLog').querySelectorAll('.msg').forEach(m => m.remove());
+  $('chatEmpty').style.display = '';
+  updateTurnUI();
 });
 
 $('infoBtn').addEventListener('click', () => $('infoModal').classList.add('open'));
