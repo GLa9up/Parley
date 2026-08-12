@@ -309,6 +309,18 @@
   </div>
 
 <script>
+/* ── กันมือถือแคชหน้าเว็บเหนียวเกินไป ────────────────────
+   GitHub Pages/เบราว์เซอร์บางเครื่องแคช URL เปล่าไว้เหนียวมาก จนต้อง
+   เติม query string เองถึงจะได้เวอร์ชันล่าสุด (ปุ่ม ⟳ ก็ทำแบบนี้อยู่แล้ว
+   แต่ช่วยได้แค่ตอนเปิดแอปค้างอยู่ ไม่ช่วยตอนเปิดใหม่จาก home screen/
+   bookmark) จึงให้หน้าเว็บสลับตัวเองไปที่ URL ที่มี query string ที่ไม่
+   เคยเห็นมาก่อนทันทีที่โหลด (ครั้งเดียวต่อการเปิดหนึ่งครั้ง สังเกตจาก
+   query string ที่ตั้งไว้เอง) บังคับให้เบราว์เซอร์ดึงไฟล์ใหม่จากเซิร์ฟเวอร์
+   จริงๆ ทุกครั้งที่เปิดแอป ไม่ใช่แค่ตอนกดปุ่ม ⟳ เอง                    */
+if(!/[?&](_pv|v)=/.test(location.search)){
+  location.replace(location.pathname + '?_pv=' + Date.now() + location.hash);
+}
+
 const LANGS = [
   {name:"ไทย", iso:"th", speech:"th-TH"},
   {name:"อังกฤษ", iso:"en", speech:"en-US"},
@@ -355,7 +367,7 @@ const LANGS = [
 const CONTACT_EMAIL = 'glagitproject@gmail.com';
 
 // เพิ่มเลขนี้ทุกครั้งที่แก้ไฟล์แล้ว push — ปุ่มรีเฟรชใช้เทียบกับเวอร์ชันบนเซิร์ฟเวอร์
-const APP_VERSION = '2026-08-10.6';
+const APP_VERSION = '2026-08-11.1';
 
 const $ = (id) => document.getElementById(id);
 
@@ -452,9 +464,9 @@ function setStatusLine(text, isError){
   el.classList.toggle('err', !!isError);
 }
 
-function addMessage(original, translated, toLang){
+function addMessage(original, translated, fromLang){
   $('chatEmpty').style.display = 'none';
-  const side = toLang === state.langs[0] ? 'left' : 'right';
+  const side = fromLang === state.langs[0] ? 'left' : 'right'; // ฝั่งของ "คนพูด" ไม่ใช่ฝั่งที่แปลไปให้
   const bubble = document.createElement('div');
   bubble.className = 'msg msg-' + side;
   const t = document.createElement('div'); t.className = 'msgText'; t.textContent = translated;
@@ -590,7 +602,7 @@ async function handleUtterance(rawText, fromIdx){
   setStatusLine('กำลังแปล…');
   try{
     const translated = await translateText(text, fromLang.iso, toLang.iso);
-    addMessage(text, translated, toLang);
+    addMessage(text, translated, fromLang);
     speak(translated, toLang.speech);
     setTurn(toLang === langA ? 0 : 1); // เทิร์นถัดไปคือฝั่งที่เพิ่งฟังคำแปล
   }catch(err){
